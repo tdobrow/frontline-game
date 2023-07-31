@@ -1,6 +1,6 @@
 // Server side code. To launch server locally:
 // 1) install node.js
-// 2) run "node app.js" inside whatever directory you save this file. Server will then be up and running, and and logs will go to that terminal window. 
+// 2) run "node app.js" inside whatever directory you save this file. Server will then be up and running, and and logs will go to that terminal window.
 // 3) Open two clients on different localhost:8080 chrome tabs. Client logs will go to dev tools console
 
 var express = require('express')
@@ -17,17 +17,10 @@ var MoveProcessor = require('./server/moveProcessor')
 var ACTIVE_PLAYER_INDEX = 0
 var PLAYER_IDS = []
 
-var beginner_mode = false
-
-
-var startState = startingStateGeneration.generateBoard(20, beginner_mode)
 var GAME_STATE = {
-  'board': startState[0],
-  'buildings': [],
-  'shop': startingStateGeneration.generateShop(beginner_mode),
-  'p1_resources': startState[1],
-  'p2_resources': startState[2],
-  'vps': {'p1':0, 'p2':0, 'p1_special':false, 'p2_special':false}
+  'board': startingStateGeneration.generateBoard(10),
+  'p1_resources': 0,
+  'p2_resources': 0
 }
 
 // Express to serve correct client side code
@@ -36,7 +29,7 @@ app.use(express.static(path.join(__dirname, 'client')))
 // Socket.io code to listen for client connection.
 io.on('connection', function(socket) {
   handlePlayerConnect(socket)
-    
+
   // if STARTING_PLAYER
   if (socket.id == PLAYER_IDS[0].socket_id) {
     socket.emit('starting_info', {
@@ -56,7 +49,7 @@ io.on('connection', function(socket) {
   console.log(PLAYER_IDS)
 
   // If the first player is connecting
-  if (PLAYER_IDS[ACTIVE_PLAYER_INDEX].socket_id === socket.id) { 
+  if (PLAYER_IDS[ACTIVE_PLAYER_INDEX].socket_id === socket.id) {
     // Emit message to specific client rather than to all connected clients
     io.sockets.emit('not_your_turn')
     socket.emit('your_turn')
@@ -75,7 +68,7 @@ io.on('connection', function(socket) {
   socket.on('submit_move', function(client_object) {
 
     var moveProcessor = new MoveProcessor(GAME_STATE, client_object, ACTIVE_PLAYER_INDEX, beginner_mode)
-    
+
     if (moveProcessor.validateMove(socket.id, PLAYER_IDS[ACTIVE_PLAYER_INDEX].socket_id)) {
       GAME_STATE = moveProcessor.processMove(client_object)
       GAME_STATE.vps = calcVPS()
@@ -115,13 +108,13 @@ io.on('connection', function(socket) {
       }
     }
     if (game_end) {
-      gameEnded() 
+      gameEnded()
     }
     emitMoveToPlayers(socket)
   })
 })
 
-// Starta a client by going to localhost:8080 in a browser 
+// Starta a client by going to localhost:8080 in a browser
 http.listen(8080, function(){
   console.log('listening on *:8080')
 })
@@ -131,7 +124,7 @@ function handlePlayerConnect(socket) {
   for (var i=0; i<PLAYER_IDS.length; i++) {
     if (!PLAYER_IDS[i].active) {
       PLAYER_IDS[i].socket_id = socket.id
-      PLAYER_IDS[i].active = true 
+      PLAYER_IDS[i].active = true
       console.log('Player reconnected with Id: ' + socket.id)
       return
     }
@@ -157,7 +150,7 @@ function handleDisconnect(socket_id) {
   }
 }
 
-function emitMoveToPlayers(socket) { 
+function emitMoveToPlayers(socket) {
   io.sockets.emit('server_response', {
     'game_state': GAME_STATE,
     'socket_id': socket.id

@@ -1,6 +1,5 @@
 /* Building validation functions */
 import ShapeUtils from './util.js'
-import ErrorHandler from './ErrorHandler.js'
 
 // check that given coordinate selection is valid for building placement
 function validateBuilding(buildingName, coords, move, board, startingPlayer, variableBuildingCost) {
@@ -16,7 +15,7 @@ function validateVariableCost(building, variableBuildingCost, casinoSteal, myRes
   var totalBuildingVariableCost
   var buildingBMs
   var buildingCs
-  var buildingLs 
+  var buildingLs
   var deduction = 0
 
   for (var i=0; i<shop.length; i++) {
@@ -24,13 +23,13 @@ function validateVariableCost(building, variableBuildingCost, casinoSteal, myRes
       totalBuildingVariableCost = shop[i]['?']
       buildingBMs = shop[i]['bm']
       buildingCs = shop[i]['c']
-      buildingLs = shop[i]['l'] 
+      buildingLs = shop[i]['l']
     }
   }
   if (!totalBuildingVariableCost) {
     return true
   }
-  
+
   if (buildingName == "Casino") {
     return casinoSteal.bm + casinoSteal.l + casinoSteal.c == 2
         &&  enemyResources.bm >= casinoSteal.bm
@@ -63,7 +62,7 @@ function validateVariableCost(building, variableBuildingCost, casinoSteal, myRes
       return false
     }
   }
-  
+
   return myResources.bm >= variableBuildingCost.bm + buildingBMs
       && myResources.l >= variableBuildingCost.l + buildingLs
       && myResources.c >= variableBuildingCost.c + buildingCs
@@ -173,7 +172,7 @@ function isWatchtowerBBlocked(row, col, buildings, startingPlayer) {
 }
 
 
-const BuildingValidation = { 
+const BuildingValidation = {
   'validateBuilding': validateBuilding,
   'validateVariableCost': validateVariableCost,
   'validateBuildingSelection': validateBuildingSelection,
@@ -190,7 +189,7 @@ const BuildingValidation = {
   'validateMonumentExtra': validateMonumentExtra
 }
 
-export default BuildingValidation 
+export default BuildingValidation
 
 // deep copy needed for recursive function
 // taken from https://stackoverflow.com/questions/728360/how-do-i-correctly-clone-a-javascript-object
@@ -238,10 +237,10 @@ function builtOn(coords, move, board, startingPlayer) {
   var lCount = 0
   for (var i = 0; i < coords.length; i++) {
     var tile = board[coords[i].row][coords[i].col]
-    if (move['marker_placement']['row'] == coords[i].row && move['marker_placement']['col'] == coords[i].col) { friendlyCount++ } 
-    if ((tile.marker === 'player_one' && startingPlayer) || tile.marker === 'player_two' && !startingPlayer) { friendlyCount++ } 
-    if ((tile.marker === 'player_one' && !startingPlayer) || tile.marker === 'player_two' && startingPlayer) { enemyCount++ } 
-    if (tile.marker === 'empty' && tile.type !== 'w' 
+    if (move['marker_placement']['row'] == coords[i].row && move['marker_placement']['col'] == coords[i].col) { friendlyCount++ }
+    if ((tile.marker === 'player_one' && startingPlayer) || tile.marker === 'player_two' && !startingPlayer) { friendlyCount++ }
+    if ((tile.marker === 'player_one' && !startingPlayer) || tile.marker === 'player_two' && startingPlayer) { enemyCount++ }
+    if (tile.marker === 'empty' && tile.type !== 'w'
         && !(move['marker_placement']['row'] == coords[i].row && move['marker_placement']['col'] == coords[i].col)) { emptyCount++ }
     if (tile.type === 'w') { waterCount++ }
     if (tile.type === 'bm') { bmCount++ }
@@ -282,15 +281,15 @@ function builtAdjacentTo(coords, move, board, startingPlayer) {
       }
       if (isAdjacent) {
         if (tile.building == undefined) {
-          if (move['marker_placement']['row'] == row && move['marker_placement']['col'] == col) { friendlyMarkerCount++ } 
-          if ((tile.marker === 'player_one' && startingPlayer) || tile.marker === 'player_two' && !startingPlayer) { friendlyMarkerCount++ } 
-          if ((tile.marker === 'player_one' && !startingPlayer) || tile.marker === 'player_two' && startingPlayer) { enemyMarkerCount++ } 
-          if (tile.marker === 'empty' && tile.type !== 'w' 
+          if (move['marker_placement']['row'] == row && move['marker_placement']['col'] == col) { friendlyMarkerCount++ }
+          if ((tile.marker === 'player_one' && startingPlayer) || tile.marker === 'player_two' && !startingPlayer) { friendlyMarkerCount++ }
+          if ((tile.marker === 'player_one' && !startingPlayer) || tile.marker === 'player_two' && startingPlayer) { enemyMarkerCount++ }
+          if (tile.marker === 'empty' && tile.type !== 'w'
               && !(move['marker_placement']['row'] == row && move['marker_placement']['col'] == col)) { emptyCount++ }
         } else {
-          if ((tile.building.player == 'player_one' && startingPlayer) 
+          if ((tile.building.player == 'player_one' && startingPlayer)
             || tile.building.player == 'player_two' && !startingPlayer) { friendlyBuildings.push(tile.building.name) }
-          if ((tile.building.player == 'player_one' && !startingPlayer) 
+          if ((tile.building.player == 'player_one' && !startingPlayer)
             || tile.building.player == 'player_two' && startingPlayer) { enemyBuildings.push(tile.building.name) }
         }
         if (tile.type === 'w') { waterCount++ }
@@ -368,7 +367,7 @@ function validateTunnelExtra(buildings, startingPlayer, coords, extraArray, boar
       && (extraArray[0]['row'] != move['row'] || extraArray[0]['col'] != move['col'])
       && board[extraArray[0]['row']][extraArray[0]['col']].marker == 'empty'
       && board[extraArray[0]['row']][extraArray[0]['col']].type != 'w'
-      && tunnelHelper(buildings, startingPlayer, coords, extraArray) 
+      && tunnelHelper(buildings, startingPlayer, coords, extraArray)
 }
 function tunnelHelper(buildings, startingPlayer, coords, extraArray) {
   var adjacentEnemyBuildings = new Set()
@@ -390,7 +389,7 @@ function tunnelHelper(buildings, startingPlayer, coords, extraArray) {
 
   for (var i=0; i<buildings[Array.from(adjacentEnemyBuildings)[0]]['location_array'].length; i++) {
     var adjacentToExtra = ShapeUtils.getAdjacentCoordinates(extraArray[0]['row'], extraArray[0]['col'])
-    for (var j=0; j<adjacentToExtra.length; j++) {      
+    for (var j=0; j<adjacentToExtra.length; j++) {
       if (buildings[Array.from(adjacentEnemyBuildings)[0]]['location_array'][i]['row'] == adjacentToExtra[j]['row'] && buildings[Array.from(adjacentEnemyBuildings)[0]]['location_array'][i]['col'] == adjacentToExtra[j]['col']) {
         return true
       }
@@ -405,7 +404,7 @@ function prison(coords, move, board, startingPlayer) {
 function validatePrisonExtra(buildings, startingPlayer, coords, extraArray, board, move) {
   return extraArray
       && board[extraArray[0]['row']][extraArray[0]['col']].type != 'w'
-      && prisonHelper(buildings, startingPlayer, coords, extraArray, board, move) 
+      && prisonHelper(buildings, startingPlayer, coords, extraArray, board, move)
 }
 function prisonHelper(buildings, startingPlayer, coords, extraArray, board, move) {
   var friendlyPrisonCoords = []
@@ -433,7 +432,7 @@ function permutations(a) {
   return a.length ? a.reduce((r, v, i) => [ ...r, ...permutations([ ...a.slice(0, i), ...a.slice(i + 1) ]).map(x => [ v, ...x ])], []) : [[]]
 }
 function prisonHelperHelper(friendlyPrisonCoords, extraArray, board, move) {
-  var extraArrayCopy = extraArray.slice() 
+  var extraArrayCopy = extraArray.slice()
   for (var prisonIndex=0; prisonIndex<friendlyPrisonCoords.length; prisonIndex++) {
     var foundAdjacentMarkerForPrison = false
     for (var c=0; c<friendlyPrisonCoords[prisonIndex].length; c++) {
@@ -465,13 +464,13 @@ function tramway(coords, move, board, startingPlayer) {
 function validateTramwayExtra(coords, extraArray, board, move) {
   return extraArray
       && extraArray.length == 2
-      && tramwayHelper(coords, extraArray, board, move) 
+      && tramwayHelper(coords, extraArray, board, move)
 }
 function tramwayHelper(coords, extraArray, board, move) {
   var fromHexValidated = 0
   var toHexValidated = 0
   var adjacentToCoords = false
-  
+
   for (var i=0; i<extraArray.length; i++) {
     if (board[extraArray[0]['row']][extraArray[0]['col']].type == 'w') {
       return false
@@ -482,7 +481,7 @@ function tramwayHelper(coords, extraArray, board, move) {
     } else {
       fromHexValidated += 1
     }
-    
+
     for (var j=0; j<coords.length; j++) {
       if (extraArray[i]['row'] == coords[j]['row'] && extraArray[i]['col'] == coords[j]['col']) {
         return false
@@ -568,7 +567,7 @@ function theGrandCanal(coords, move, board, startingPlayer) {
   }
   var ons = builtOn(coords, move, board, startingPlayer)
   return ons.friendly > 0 && ons.water > 0 && ons.enemy == 0
-    
+
 }
 function lock(coords, move, board, startingPlayer) {
   var on = builtOn(coords, move, board, startingPlayer)
@@ -586,7 +585,7 @@ function validateFerryExtra(coords, extraArray, board, move) {
       && (extraArray[0]['row'] != move['row'] || extraArray[0]['col'] != move['col'])
       && board[extraArray[0]['row']][extraArray[0]['col']].marker == 'empty'
       && board[extraArray[0]['row']][extraArray[0]['col']].type != 'w'
-      && ferryHelper(coords, extraArray, board, move) 
+      && ferryHelper(coords, extraArray, board, move)
 }
 function ferryHelper(coords, extraArray, board, move) {
   var adjacentToCoord = ShapeUtils.getAdjacentCoordinates(coords[0]['row'], coords[0]['col'])
@@ -727,7 +726,7 @@ function validateMonumentExtra(coords, extraArray, board, move, startingPlayer) 
       && extraArray.length == 1
       && (extraArray[0]['row'] != coords[0]['row'] || extraArray[0]['col'] != coords[0]['col'])
       && (extraArray[0]['row'] != move['row'] || extraArray[0]['col'] != move['col'])
-      && monumentHelper(coords, extraArray, board, move, startingPlayer) 
+      && monumentHelper(coords, extraArray, board, move, startingPlayer)
 }
 function monumentHelper(coords, extraArray, board, move, startingPlayer) {
   var adjacentToExtra = ShapeUtils.getAdjacentCoordinates(extraArray[0]['row'], extraArray[0]['col'])
@@ -848,7 +847,7 @@ var buildingData = {
   'Housing Shack': {'validation_function': housingUnit, 'length': 2},
 
   //new cultural
-  'Place Charles de Gaulle': {'validation_function': placeCharlesDeGaulle, 'length': 7}, 
+  'Place Charles de Gaulle': {'validation_function': placeCharlesDeGaulle, 'length': 7},
   'Parc de Buttes Chaumont': {'validation_function': parcDeButtesChaumont, 'length': 5},
   'Rue de Rivoli': {'validation_function': rueDeRivoli, 'length': 6},
   'The City Hall': {'validation_function': theCityHall, 'length': 5},
@@ -860,6 +859,6 @@ var buildingData = {
   'Guild Hall': {'validation_function': guildHall, 'length': 6},
   'Opera Garnier': {'validation_function': museeDuOrsay, 'length': 2},
   'Le Havre': {'validation_function': leHavre, 'length': 4},
-  'Ile de la Cite': {'validation_function': ileDeLaCite, 'length': 2}, 
+  'Ile de la Cite': {'validation_function': ileDeLaCite, 'length': 2},
   'The Grand Canal': {'validation_function': theGrandCanal, 'length': 5}
 }
