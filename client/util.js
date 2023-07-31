@@ -36,7 +36,7 @@ function friendly(row, col, board, startingPlayer) {
 function adjacent(tileA, tileB) {
   var adjacentToA = getAdjacentCoordinates(tileA.row, tileA.col)
   for (var i = 0; i < adjacentToA.length; i++) {
-    if (adjacentToA[i].row == tileB.row 
+    if (adjacentToA[i].row == tileB.row
         && adjacentToA[i].col == tileB.col) {
       return true;
     }
@@ -57,14 +57,14 @@ function numNextTo(buildings, board, building_index, building, startingPlayer) {
           for (var hex=0; hex<buildings[buildingIndex]['location_array'].length; hex++) {
             if (adjacentHexes[i]['row'] == buildings[buildingIndex]['location_array'][hex]['row'] && adjacentHexes[i]['col'] == buildings[buildingIndex]['location_array'][hex]['col']) {
               if ((startingPlayer && buildings[buildingIndex]['player'] == 'player_one') || (!startingPlayer && buildings[buildingIndex]['player'] == 'player_two')) {
-                adjacentFriendlyBuildingIndices.add(buildingIndex) 
+                adjacentFriendlyBuildingIndices.add(buildingIndex)
               } else {
                 adjacentEnemyBuildingIndices.add(buildingIndex)
               }
             }
           }
         }
-      } 
+      }
       try {
         if (board[adjacentHexes[i]['row']][adjacentHexes[i]['col']].type == 'w') {
           // unique transform of row,col for set uniqueness
@@ -301,6 +301,7 @@ function checkShapeStar(tiles) {
         }
       }
     }
+
     return vCount == 3
   }
 }
@@ -331,7 +332,7 @@ const ShapeUtils = {
     for (var i = 0; i < adjacentCoordinates.length; i++) {
       var coords = adjacentCoordinates[i]
       var twoAway = getAdjacentCoordinates(coords['row'], coords['col'])
-      
+
       // check if adjacent tile is friendly
       adjacentToFriendly = adjacentToFriendly || friendly(coords['row'], coords['col'], board, startingPlayer)
 
