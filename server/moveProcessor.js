@@ -16,8 +16,8 @@
     // If it's the active player's turn to submit
     if (this.client_object && this.client_object.marker_placement && active_player_id === socket_id){
       var row = this.client_object.marker_placement.row
-      var col = this.client_object.marker_placement.col 
-      
+      var col = this.client_object.marker_placement.col
+
       if (this.game_state.board[row][col].marker == 'empty'
           && this.game_state.board[row][col].type != 'w'
           && this.game_state.board[row][col].building_id == undefined
@@ -37,7 +37,7 @@
       player = 'player_one'
     } else {
       player = 'player_two'
-    }    
+    }
     this.game_state.board[row][col].marker = player
     for (var i=0; i<this.game_state.board.length; i++) {
       for (var j=0; j<this.game_state.board[i].length; j++) {
@@ -77,13 +77,6 @@
           } else {
             this.game_state.p2_resources[resource_type] += 1
           }
-        }
-      }
-      if (newBuilding.name == 'Foundry') {
-        if (this.active_player_index == 0) {
-          this.game_state.p2_immediately_passes = true
-        } else {
-          this.game_state.p1_immediately_passes = true
         }
       }
       if (newBuilding.name == 'Ferry') {
@@ -127,7 +120,7 @@
         var c0 = newBuilding.extra_array[0].col
         var r1 = newBuilding.extra_array[1].row
         var c1 = newBuilding.extra_array[1].col
-          
+
         if (board[r0][c0].marker == 'empty') {
           var oldMarker = this.game_state.board[r1][c1].marker
           this.game_state.board[r1][c1].marker = 'empty'
@@ -161,7 +154,7 @@
         this.game_state.board[r][c].marker = player
       }
     }
-    
+
     return this.game_state
   }
 
@@ -181,7 +174,7 @@
       player_resources = game_state.p1_resources
     } else {
       player_resources = game_state.p2_resources
-    }  
+    }
     for (var i=0; i<game_state.shop.length; i++) {
       if (game_state.shop[i].name == building_name) {
         if (game_state.shop[i]['?'] > 0) {
@@ -226,7 +219,7 @@
             return true
           } else {
             return false
-          } 
+          }
         } else if (canPayCost(game_state.shop[i], player_resources)) {
           if (active_player_index == 0) {
             game_state.p1_resources.bm -= game_state.shop[i].bm
@@ -251,7 +244,7 @@
   }
 
   function adjacentBuildings(buildings, board, building) {
-    
+
     var adjacentEnemyBuildingIndices = new Set()
     var adjacentFriendlyBuildingIndices = new Set()
 
@@ -262,13 +255,13 @@
           for (var hex=0; hex<buildings[buildingIndex]['location_array'].length; hex++) {
             if (adjacentHexes[i]['row'] == buildings[buildingIndex]['location_array'][hex]['row'] && adjacentHexes[i]['col'] == buildings[buildingIndex]['location_array'][hex]['col']) {
               if (building.player == buildings[buildingIndex]['player']) {
-                adjacentFriendlyBuildingIndices.add(buildingIndex) 
+                adjacentFriendlyBuildingIndices.add(buildingIndex)
               } else {
                 adjacentEnemyBuildingIndices.add(buildingIndex)
               }
             }
           }
-        } 
+        }
       }
     }
 

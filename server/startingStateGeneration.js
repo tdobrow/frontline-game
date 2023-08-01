@@ -1,18 +1,52 @@
+const Unit = require('./unit');
+
 (function() {
   module.exports.generateBoard = function(board_size) {
-    board = []
+    const board = []
+    const p1_units = []
+    const p2_units = []
 
     for (row=0; row<board_size; row+=1) {
-      new_row = []
+      const new_row = []
       for (col=0; col<board_size; col+=1) {
-        new_row.push({
-          'p1_units': [],
-          'p2_units': [],
-          'ownership': 0, // 0 = neutral, 1 = player 1, 2 = player 2
-        })
+        if (col + row < 5 && row < 4 && col < 4) {
+          new_row.push({
+            'p1_units': [],
+            'p2_units': [],
+            'ownership': 1, // 0 = neutral, 1 = player 1, 2 = player 2
+          })
+        } else if (col + row > 13 && row > 5 && col > 5) {
+          new_row.push({
+            'p1_units': [],
+            'p2_units': [],
+            'ownership': 2, // 0 = neutral, 1 = player 1, 2 = player 2
+          })
+        } else {
+          new_row.push({
+            'p1_units': [],
+            'p2_units': [],
+            'ownership': 0, // 0 = neutral, 1 = player 1, 2 = player 2
+          })
+        }
       }
       board.push(new_row)
     }
-    return board
+    let unit = new Unit('infantry', 1, 1, 3)
+    board[1][3].p1_units.push(unit)
+    p1_units.push(unit)
+
+    unit = new Unit('infantry', 1, 3, 1)
+    board[3][1].p1_units.push(unit)
+    p1_units.push(unit)
+
+    unit = new Unit('infantry', 2, 8, 6)
+    board[8][6].p2_units.push(new Unit('infantry', 2))
+    p2_units.push(unit)
+
+    unit = new Unit('infantry', 2, 6, 8)
+    board[6][8].p2_units.push(new Unit('infantry', 2))
+    p2_units.push(unit)
+
+    return { 'board': board, 'p1_units': p1_units, 'p2_units': p2_units }
   }
 }())

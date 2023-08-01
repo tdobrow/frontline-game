@@ -15,33 +15,60 @@
 // // individual functions to validate building placement in separate local file
 // import BuildingValidation from './buildingValidation.js'
 // import ShapeUtils from './util.js'
+// import Unit from '../server/unit.js';
 
 // Matrix of Tile objects. Details of board should come from server on game start
 var BOARD = undefined
-var BUILDINGS = undefined
-
+var P1_UNITS = undefined
+var P2_UNITS = undefined
 
 var SOCKET_ID = undefined
 
 var MY_TURN = false
-var MY_MOVE = {}
+var MY_MOVE = {
+  'start_cell': undefined,
+  'end_cell': undefined,
+}
 
-var STARTING_PLAYER = false
+var IS_PLAYER_1 = false
 var MY_RESOURCES = 0
 var ENEMY_RESOURCES = 0
 
-// handle hex click
-// force marker placement selection first
-// then allow building selection, with shape restrictions
-function handleHexClick(cell) {
-  var coor = cell.id.split("_")
-  var row = +coor[0]
-  var col = +coor[1]
-
-  // force marker selection first
-  if (MY_MOVE['building'] === undefined) {
-	 handleHexClickForMarkerPlacement(cell, row, col)
+function handleSelectClick(cell) {
+  if (MY_MOVE.start_cell === undefined) {
+    selectStartCell(cell)
+  } else if (MY_MOVE.start_cell === cell) {
+    deselectStartCell(cell)
+  } else if (MY_MOVE.end_cell === cell) {
+    deselectEndCell(cell)
+  } else {
+    deselectAllEndCells()
+    selectEndCell(cell)
   }
+  console.log(MY_MOVE)
+}
+
+function selectStartCell(cell) {
+  MY_MOVE.start_cell = cell
+  cell.classList.add('start-selected')
+}
+function deselectStartCell(cell) {
+  MY_MOVE.start_cell = undefined
+  cell.classList.remove('start-selected')
+}
+function selectEndCell(cell) {
+  MY_MOVE.end_cell = cell
+  cell.classList.add('end-selected')
+}
+function deselectEndCell(cell) {
+  MY_MOVE.end_cell = undefined
+  cell.classList.remove('end-selected')
+}
+function deselectAllEndCells() {
+  MY_MOVE.end_cell = undefined;
+  document.getElementById('board').childNodes.forEach(function(cell) {
+    cell.classList.remove('end-selected');
+  });
 }
 
 function handleHexClickForMarkerPlacement(cell, row, col) {
@@ -64,6 +91,8 @@ function handleHexClickForMarkerPlacement(cell, row, col) {
 }
 
 function displayBoard() {
+  console.log(BOARD)
+  console.log("Am player 1: " + IS_PLAYER_1)
   const container = document.getElementById("board")
   while (document.getElementById('board').childNodes.length > 0) {
     document.getElementById('board').childNodes[0].remove()
@@ -72,25 +101,79 @@ function displayBoard() {
     for (var col = 0; col < BOARD[row].length; col++) {
 	    var cell = document.createElement("div")
       cell.id = row + "_" + col
-      cell.className = 'tile'
-      if ((row + col) % 2 == 0) {
-        cell.className += ' grey_color'
-      }
+      cell.classList.add('tile');
 
       if (BOARD[row][col].ownership > 0) {
-        if ((STARTING_PLAYER && BOARD[row][col].ownership == 1) || (!STARTING_PLAYER && BOARD[row][col].ownership == 2)) {
-          cell.className += ' Mine'
+        if ((IS_PLAYER_1 && BOARD[row][col].ownership == 1) || (!IS_PLAYER_1 && BOARD[row][col].ownership == 2)) {
+          cell.classList.add('friendly_controlled');
         }
-        if ((STARTING_PLAYER && BOARD[row][col].ownership == 2) || (!STARTING_PLAYER && BOARD[row][col].ownership == 1)) {
-          cell.className += ' Enemy'
+        if ((IS_PLAYER_1 && BOARD[row][col].ownership == 2) || (!IS_PLAYER_1 && BOARD[row][col].ownership == 1)) {
+          cell.classList.add('enemy_controlled');
         }
 	    }
+
       cell.onclick = function(cell) {
         return function() {
-          handleHexClick(cell)
+          handleSelectClick(cell)
         }
       }(cell) // immediatlly invoke this function to tie it to correct cell
       container.appendChild(cell)
+    }
+  }
+  layerUnits()
+  layerFog()
+}
+
+function layerFog() {
+  const childNodes = document.getElementById("board").childNodes;
+
+  for (const node of childNodes) {
+    const row = node.id.split("_")[0]
+    const col = node.id.split("_")[1]
+    if (IS_PLAYER_1 && BOARD[row][col].p1_units.length == 0 && BOARD[row][col].ownership !== 1) {
+      node.classList.add("fog");
+      document.getElementById(row + "_" + col).innerText = "";
+    }
+    if (!IS_PLAYER_1 && BOARD[row][col].p2_units.length == 0 && BOARD[row][col].ownership !== 2) {
+      node.classList.add("fog");
+      document.getElementById(row + "_" + col).innerText = "";
+    }
+  }
+  if (IS_PLAYER_1) {
+    for (const unit of P1_UNITS) {
+      for (let i = -1; i <= 1; i++) {
+        for (let j = -1; j <= 1; j++) {
+          const row = unit.row + i;
+          const col = unit.col + j;
+          document.getElementById(row + "_" + col)?.classList?.remove("fog");
+        }
+      }
+    }
+  } else {
+    for (const unit of P2_UNITS) {
+      for (let i = -1; i <= 1; i++) {
+        for (let j = -1; j <= 1; j++) {
+          const row = unit.row + i;
+          const col = unit.col + j;
+          document.getElementById(row + "_" + col)?.classList?.remove("fog");
+        }
+      }
+    }
+  }
+}
+
+function layerUnits() {
+  const childNodes = document.getElementById("board").childNodes;
+
+  for (const node of childNodes) {
+    const row = node.id.split("_")[0]
+    const col = node.id.split("_")[1]
+    if (IS_PLAYER_1 && BOARD[row][col].p1_units.length > 0) {
+      document.getElementById(row + "_" + col).innerText = BOARD[row][col].p1_units[0].name
+    } else if (!IS_PLAYER_1 && BOARD[row][col].p2_units.length > 0) {
+      document.getElementById(row + "_" + col).innerText = BOARD[row][col].p2_units[0].name
+    } else {
+      document.getElementById(row + "_" + col).innerText = ""
     }
   }
 }
@@ -111,9 +194,10 @@ function clearPendingPlacements() {
 // Reconcile global variables to server's values. Display elements.
 function ingestServerResponse(server_response) {
   BOARD = server_response.game_state.board
-  BUILDINGS = server_response.game_state.buildings
+  P1_UNITS = server_response.game_state.p1_units
+  P2_UNITS = server_response.game_state.p2_units
 
-  if (STARTING_PLAYER) {
+  if (IS_PLAYER_1) {
     MY_RESOURCES = server_response.game_state.p1_resources
   } else {
     MY_RESOURCES = server_response.game_state.p2_resources
@@ -151,14 +235,10 @@ window.onload = () => {
     document.title = "Your Turn!"
 
   	ingestServerResponse(server_response)
-
-  	if ((STARTING_PLAYER && server_response.game_state.p1_immediately_passes) || (!STARTING_PLAYER && server_response.game_state.p2_immediately_passes)) {
-  	    socket.emit('pass')
-  	}
   });
 
   socket.on('starting_info', (server_response) => {
-  	STARTING_PLAYER = server_response.starting_player
+  	IS_PLAYER_1 = server_response.starting_player
   	SOCKET_ID = server_response.socket_id
 
   	ingestServerResponse(server_response)

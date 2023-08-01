@@ -12,13 +12,17 @@ var io = require('socket.io')(http)
 
 // Locally written server side code
 var startingStateGeneration = require('./server/startingStateGeneration')
+// var Unit = require('./server/unit')
 var MoveProcessor = require('./server/moveProcessor')
 
 var ACTIVE_PLAYER_INDEX = 0
 var PLAYER_IDS = []
 
+const starting_state = startingStateGeneration.generateBoard(10)
 var GAME_STATE = {
-  'board': startingStateGeneration.generateBoard(10),
+  'board': starting_state.board,
+  'p1_units': starting_state.p1_units,
+  'p2_units': starting_state.p2_units,
   'p1_resources': 0,
   'p2_resources': 0
 }
@@ -59,8 +63,6 @@ io.on('connection', function(socket) {
   }
 
   socket.on("pass", function() {
-    GAME_STATE.p1_immediately_passes = false
-    GAME_STATE.p2_immediately_passes = false
     emitMoveToPlayers(socket)
   })
 
