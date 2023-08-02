@@ -15,8 +15,9 @@ var startingStateGeneration = require('./server/startingStateGeneration')
 // var Unit = require('./server/unit')
 var MoveProcessor = require('./server/moveProcessor')
 
-var ACTIVE_PLAYER_INDEX = 0
 var PLAYER_IDS = []
+
+var SUBMITTED_MOVES = {}
 
 const starting_state = startingStateGeneration.generateBoard(10)
 var GAME_STATE = {
@@ -34,85 +35,52 @@ app.use(express.static(path.join(__dirname, 'client')))
 io.on('connection', function(socket) {
   handlePlayerConnect(socket)
 
-  // if STARTING_PLAYER
   if (socket.id == PLAYER_IDS[0].socket_id) {
     socket.emit('starting_info', {
       'game_state': GAME_STATE,
       'socket_id': socket.id,
-      'starting_player': true
+      'is_player_1': true
     })
   } else {
     socket.emit('starting_info', {
       'game_state': GAME_STATE,
       'socket_id': socket.id,
-      'starting_player': false
+      'is_player_1': false
     })
   }
 
   console.log("Players: ")
   console.log(PLAYER_IDS)
 
-  // If the first player is connecting
-  if (PLAYER_IDS[ACTIVE_PLAYER_INDEX].socket_id === socket.id) {
-    // Emit message to specific client rather than to all connected clients
-    io.sockets.emit('not_your_turn')
-    socket.emit('your_turn')
-  } else {
-    io.sockets.emit('your_turn')
-    socket.emit('not_your_turn')
-  }
-
-  socket.on("pass", function() {
-    emitMoveToPlayers(socket)
-  })
-
   // When "submit_move" message comes in, call a function
+  // Client Object:
+  // {
+  //   is_player_1: ,
+  //   start_cell_id: ,
+  //   end_cell_id: ,
+  // }
   socket.on('submit_move', function(client_object) {
-
-    var moveProcessor = new MoveProcessor(GAME_STATE, client_object, ACTIVE_PLAYER_INDEX, beginner_mode)
-
-    if (moveProcessor.validateMove(socket.id, PLAYER_IDS[ACTIVE_PLAYER_INDEX].socket_id)) {
-      GAME_STATE = moveProcessor.processMove(client_object)
-      GAME_STATE.vps = calcVPS()
-      emitMoveToPlayers(socket)
+    if (client_object.is_player_1) {
+      SUBMITTED_MOVES['p1'] = client_object;
+    } else {
+      SUBMITTED_MOVES['p2'] = client_object;
     }
+    console.log(SUBMITTED_MOVES)
 
-    for (var i=0; i<PLAYER_IDS.length; i++) {
-      if (PLAYER_IDS[i].pass_forever) {
-        io.sockets.emit('server_response', {
-          'game_state': GAME_STATE,
-          'socket_id': PLAYER_IDS[i].socket_id
-        })
-        io.sockets.emit('not_your_turn')
-        socket.emit('your_turn')
+    if (SUBMITTED_MOVES['p1'] && SUBMITTED_MOVES['p2']) {
 
-        ACTIVE_PLAYER_INDEX = +(!ACTIVE_PLAYER_INDEX)
-      }
+      processUnitMovements()
+
+      emitMovesToPlayers()
+      SUBMITTED_MOVES = {}
     }
+    console.log(SUBMITTED_MOVES)
   })
   // When a client disconnects, clean that connection up
   socket.on('disconnect', function() {
     handleDisconnect(socket.id)
     console.log("Players: ")
     console.log(PLAYER_IDS)
-  })
-
-  socket.on('pass_forever', function() {
-    for (var i=0; i<PLAYER_IDS.length; i++) {
-      if (PLAYER_IDS[i].socket_id == socket.id) {
-        PLAYER_IDS[i].pass_forever = true
-      }
-    }
-    var game_end = true
-    for (var i=0; i<PLAYER_IDS.length; i++) {
-      if (!PLAYER_IDS[i].pass_forever) {
-        game_end = false
-      }
-    }
-    if (game_end) {
-      gameEnded()
-    }
-    emitMoveToPlayers(socket)
   })
 })
 
@@ -152,68 +120,36 @@ function handleDisconnect(socket_id) {
   }
 }
 
-function emitMoveToPlayers(socket) {
+function emitMovesToPlayers() {
   io.sockets.emit('server_response', {
-    'game_state': GAME_STATE,
-    'socket_id': socket.id
+    'game_state': GAME_STATE
   })
-  socket.emit('not_your_turn')
-  ACTIVE_PLAYER_INDEX = +(!ACTIVE_PLAYER_INDEX)
 }
 
-function calcVPS() {
-  p1_vps = 0
-  p2_vps = 0
-  p1_special = false
-  p2_special = false
-  for (var i=0; i<GAME_STATE.buildings.length; i++) {
-    for (var j=0; j<GAME_STATE.shop.length; j++) {
-      if (GAME_STATE.shop[j].name == GAME_STATE.buildings[i].name) {
-        if (GAME_STATE.buildings[i].player == 'player_one') {
-          if (GAME_STATE.shop[j].vp != "0" || GAME_STATE.shop[j].name == 'Casino') {
-            p1_vps += GAME_STATE.shop[j].vp
-          } else {
-            p1_special = true
-          }
-        }
-        if (GAME_STATE.buildings[i].player == 'player_two') {
-          if (GAME_STATE.shop[j].vp != "0" || GAME_STATE.shop[j].name == 'Casino') {
-            p2_vps += GAME_STATE.shop[j].vp
-          } else {
-            p2_special = true
-          }
-        }
-      }
+
+// Move Processing Code
+
+// TODO: validate move
+function processUnitMovements() {
+  moveUnits(SUBMITTED_MOVES.p1.start_cell_id, SUBMITTED_MOVES.p1.end_cell_id, 'p1_units')
+  moveUnits(SUBMITTED_MOVES.p2.start_cell_id, SUBMITTED_MOVES.p2.end_cell_id, 'p2_units')
+}
+
+function moveUnits(start_cell_id, end_cell_id, player_unit_key) {
+  moved_units = []
+  GAME_STATE[player_unit_key].forEach(function(unit) {
+    if (unit.row == start_cell_id.split('_')[0] && unit.col == start_cell_id.split('_')[1]) {
+      // Sets player unit list positions to new tile
+      unit.row = +end_cell_id.split('_')[0]
+      unit.col = +end_cell_id.split('_')[1]
+
+      moved_units.push(unit);
     }
-  }
-  return {'p1':p1_vps, 'p2':p2_vps, 'p1_special':p1_special, 'p2_special':p2_special}
+  })
+  // Move Game board units onto tile
+  GAME_STATE.board[start_cell_id.split('_')[0]][start_cell_id.split('_')[1]][player_unit_key] = []
+  GAME_STATE.board[end_cell_id.split('_')[0]][end_cell_id.split('_')[1]][player_unit_key] = moved_units
+
+  // Change ownership of tile
+  GAME_STATE.board[end_cell_id.split('_')[0]][end_cell_id.split('_')[1]].ownership = player_unit_key == 'p1_units' ? 1 : 2
 }
-
-function gameEnded() {
-  p1_vps = 0
-  p2_vps = 0
-  for (var i=0; i<GAME_STATE.buildings.length; i++) {
-    for (var j=0; j<GAME_STATE.shop.length; j++) {
-      if (GAME_STATE.shop[j].name == GAME_STATE.buildings[i].name) {
-        if (GAME_STATE.buildings[i].player == 'player_one') {
-          if (GAME_STATE.shop[j].vp != "*") {
-            p1_vps += GAME_STATE.shop[j].vp
-          }
-        }
-        if (GAME_STATE.buildings[i].player == 'player_two') {
-          if (GAME_STATE.shop[j].vp != "*") {
-            p2_vps += GAME_STATE.shop[j].vp
-          }
-        }
-      }
-    }
-  }
-  io.sockets.emit('game_ended', {'p1_vps': p1_vps, 'p2_vps': p2_vps})
-}
-
-
-
-
-
-
-

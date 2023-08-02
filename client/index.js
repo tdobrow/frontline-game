@@ -24,7 +24,6 @@ var P2_UNITS = undefined
 
 var SOCKET_ID = undefined
 
-var MY_TURN = false
 var MY_MOVE = {
   'start_cell': undefined,
   'end_cell': undefined,
@@ -69,25 +68,6 @@ function deselectAllEndCells() {
   document.getElementById('board').childNodes.forEach(function(cell) {
     cell.classList.remove('end-selected');
   });
-}
-
-function handleHexClickForMarkerPlacement(cell, row, col) {
-  // Clicking on an already selected hex will de-select it.
-  if (cell.innerText == '*') {
-  	clearPendingPlacements()
-  	MY_MOVE = {}
-  }
-  // else {
-  //   if (tileAdjacencies.adjacentToFriendly || tileAdjacencies.adjacentViaLighthouse || tileAdjacencies.adjacentViaLock) {
-  //     clearPendingPlacements()
-  //     cell.innerText = '*'
-
-  //     var resource_type = BOARD[row][col].type
-  //     handleBonusResources(row, col, resource_type, true)
-
-  //     MY_MOVE['marker_placement'] = {'row': row, 'col': col}
-  //   }
-  // }
 }
 
 function displayBoard() {
@@ -178,19 +158,6 @@ function layerUnits() {
   }
 }
 
-// remove * marker from selected tiles
-function clearPendingPlacements() {
-  for (var row = 0; row < BOARD.length; row++) {
-    for (var col = 0; col < BOARD[row].length; col++) {
-	    if (document.getElementById(row + "_" + col).innerText == "*") {
-		    document.getElementById(row + "_" + col).innerText = ""
-        handleBonusResources(row, col, BOARD[row][col].type, false)
-
-	    }
-	  }
-  }
-}
-
 // Reconcile global variables to server's values. Display elements.
 function ingestServerResponse(server_response) {
   BOARD = server_response.game_state.board
@@ -216,50 +183,38 @@ window.onload = () => {
   	console.log("Game Ended")
   });
 
-  // handle different messages from server
-  socket.on('your_turn', () => {
-    MY_TURN = true
-    document.getElementById('turn_title').innerText = 'Your Turn'
-    document.title = "Your Turn!"
-  });
-
-  socket.on('not_your_turn', () => {
-    MY_TURN = false
-    document.getElementById('turn_title').innerText = 'Opponent\'s Turn'
-    document.title = "Waiting on opponent"
-  });
-
   socket.on('server_response', (server_response) => {
-    MY_TURN = true
-  	document.getElementById('turn_title').innerText = 'Your Turn'
-    document.title = "Your Turn!"
+    console.log("Server Response");
+    console.log(server_response);
+    ingestServerResponse(server_response);
 
-  	ingestServerResponse(server_response)
+    document.title = "Your Turn"
+    document.getElementById("submit_btn").disabled = false;
   });
 
   socket.on('starting_info', (server_response) => {
-  	IS_PLAYER_1 = server_response.starting_player
+  	IS_PLAYER_1 = server_response.is_player_1
   	SOCKET_ID = server_response.socket_id
 
   	ingestServerResponse(server_response)
   });
 
-
-  document.getElementById("pass_btn").onclick = () => {
-    if (MY_TURN) {
-	    if (confirm("Are you sure you want to pass forever??")) {
-		    socket.emit("pass_forever")
-	    }
-    }
-  }
-
   // handle submit button click
   document.getElementById("submit_btn").onclick = () => {
-  	if (MY_TURN) {
-      if (MY_MOVE['marker_placement']) {
-        socket.emit('submit_move', MY_MOVE);
-        MY_MOVE = {}
+    if (MY_MOVE['start_cell'] && MY_MOVE['end_cell']) {
+      document.title = "Waiting on opponent"
+
+      const move_for_server = {
+        is_player_1: IS_PLAYER_1,
+        start_cell_id: MY_MOVE.start_cell.id,
+        end_cell_id: MY_MOVE.end_cell.id
       }
+
+      console.log("Submitting move")
+      console.log(move_for_server)
+      socket.emit('submit_move', move_for_server);
+      document.getElementById("submit_btn").disabled = true;
+      MY_MOVE = {}
     }
   }
 }
