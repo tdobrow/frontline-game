@@ -24,6 +24,8 @@ var GAME_STATE = {
   'board': starting_state.board,
   'p1_units': starting_state.p1_units,
   'p2_units': starting_state.p2_units,
+  'p1_structures': starting_state.p1_structures,
+  'p2_structures': starting_state.p2_structures,
   'p1_resources': 0,
   'p2_resources': 0
 }
@@ -148,7 +150,7 @@ function moveUnits(start_cell_id, end_cell_id, player_unit_key) {
   })
   // Move Game board units onto tile
   GAME_STATE.board[start_cell_id.split('_')[0]][start_cell_id.split('_')[1]][player_unit_key] = []
-  GAME_STATE.board[end_cell_id.split('_')[0]][end_cell_id.split('_')[1]][player_unit_key] = moved_units
+  GAME_STATE.board[end_cell_id.split('_')[0]][end_cell_id.split('_')[1]][player_unit_key].push(...moved_units)
 
   // Change ownership of tile
   GAME_STATE.board[end_cell_id.split('_')[0]][end_cell_id.split('_')[1]].ownership = player_unit_key == 'p1_units' ? 1 : 2

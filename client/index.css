@@ -56,45 +56,18 @@ p {
     color: var(--back_color);
 }
 
-#top-section {
-    position: relative;
-    width: 100%;
-    margin: 0 auto;
-}
-
-#left-block {
-    position: absolute;
-    left: 0px;
-    width: 300px;
-    height: 100%;
-}
-#center-block {
-    position: absolute;
-    padding: 5px;
-    left: 20%;
-    right: 700px;
-    height: 100%;
-}
-
-#turn_title {
-    position: absolute;
-    font-weight: bold;
-    padding: 5px;
-    left: 10%;
-    display: inline-block;
-    text-align: center;
-    font-size: 30;
-    width: 220px;
-}
-
 #my_resources {
     width: 160px;
     padding-right: 0px;
 }
 
-#button_div {
-    position: absolute;
-    top: 80px;
+.button_selected {
+  border-color:green;
+  border-width: 3px;
+}
+
+.button {
+  padding: 3px
 }
 
 h3 {
@@ -110,18 +83,10 @@ h3 {
     float: left;
 }
 
-.center {
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    width: 50%;
-}
-
 #board {
-  position: absolute;
-  top: 200px;
   z-index: 1;
   display: grid;
+  margin-right: 20px;
   grid-template-columns: repeat(10, 1fr);
   grid-template-rows: repeat(10, 1fr);
   gap: 1px;
@@ -132,6 +97,8 @@ h3 {
 .tile {
   border: 1px solid #000;
   background-color: #f3ffee;
+  transition: background-color 0.3s;
+  position: relative;
 }
 
 .red_color {
@@ -144,16 +111,16 @@ h3 {
     color: #006600;
 }
 
-/* The order of these three matters such that friendly/enemy override fog */
-.fog {
-  background-color: #c0c0c0;
-  opacity: 0.75;
-}
 .friendly_controlled {
   background-color: #f7ff89;
 }
 .enemy_controlled {
   background-color: #9e5f5f;
+}
+/* The order of these three matters such that friendly/enemy override fog */
+.fog {
+  background-color: #c0c0c0;
+  /* opacity: 0.75; */
 }
 
 .start-selected {
@@ -163,4 +130,45 @@ h3 {
 .end-selected {
   border-color: #ff0000;
   border-width: 3px;
+}
+
+.top-status-bar {
+  background-color: #f0f0f0;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+}
+
+/* Top Buttons styles */
+.top-buttons {
+  display: flex;
+  flex-direction: column;
+}
+
+.top-buttons button {
+  margin-bottom: 10px;
+}
+
+/* Table List styles */
+.table-list {
+  margin: 0 auto;
+  border-collapse: collapse;
+  width: 300px;
+}
+
+.table-list th, .table-list td {
+  border: 1px solid #ccc;
+  padding: 8px;
+}
+
+.table-list th {
+  background-color: #f0f0f0;
+}
+.flex-container {
+  display: flex;
+}
+.unit-list-wrapper {
+  flex: 1;
+  display: none;
 }

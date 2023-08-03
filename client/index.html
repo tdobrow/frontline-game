@@ -4,23 +4,31 @@
   <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
   <link rel="stylesheet" type="text/css" href="index.css">
   <body>
-    <!-- <img src="https://i.imgur.com/930pwBA.jpg" class="center"> -->
-    <div id='top-section'>
-	    <div id='left-block'>
-				<div id='my_resources' class='resource_box_mine'>
-				  <h2>My Money</h2>
-				  <div id='my_money'>$0</div>
-				</div>
-				<div id='button_div'>
+    <div class="top-status-bar">
+      <div class="top-buttons">
+        <div class="button" id='button_div'>
 				  <input type="submit" id='submit_btn' value="Submit Move">
 				</div>
-			</div>
-
-      <div id='center-block'>
-				<div id=turn_title></div>
-			</div>
+        <div class="button" id='purchase_button_div'>
+				  <input type="submit" id='purchase_submit_btn' value="Purchase">
+				</div>
+      </div>
+      <div id='my_resources' class='resource_box_mine'>
+        <h2>My Money</h2>
+        <div id='my_money'>$0</div>
+      </div>
     </div>
-    <div id="board"></div>
-    </svg>
+
+    <div class="flex-container">
+      <div id="board" class="board"></div>
+
+      <div id='unit-list-wrapper'>
+        <table id="table-list" class="table-list">
+          <tr>
+            <th>Units</th>
+          </tr>
+        </table>
+      </div>
+    </div>
   </body>
 </html>

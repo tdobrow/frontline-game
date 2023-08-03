@@ -5,13 +5,16 @@ class Structure {
     wall:        { hp: 10, cost: 30 },
   };
 
-  constructor(type, player) {
+  constructor(type, player, row, col) {
     if (!Structure.statsMapping[type]) {
       throw new Error(`Invalid structure type: ${type}`);
     }
 
     this.type = type;
     this.player = player;
+    this.row = row;
+    this.col = col;
+
     this.name = `P${player}-${type}`;
     this.stats = Structure.statsMapping[type];
   }

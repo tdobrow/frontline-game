@@ -23,6 +23,7 @@ var P1_UNITS = undefined
 var P2_UNITS = undefined
 
 var SOCKET_ID = undefined
+var PURCHASE_SELECTION_MODE = false
 
 var MY_MOVE = {
   'start_cell': undefined,
@@ -33,18 +34,72 @@ var IS_PLAYER_1 = false
 var MY_RESOURCES = 0
 var ENEMY_RESOURCES = 0
 
-function handleSelectClick(cell) {
+function handleClick(cell) {
+  if (PURCHASE_SELECTION_MODE) {
+    return handlePurchasePlacement(cell);
+  }
+
   if (MY_MOVE.start_cell === undefined) {
-    selectStartCell(cell)
-  } else if (MY_MOVE.start_cell === cell) {
-    deselectStartCell(cell)
-  } else if (MY_MOVE.end_cell === cell) {
+    return handleSelectClick(cell)
+  }
+  if (MY_MOVE.start_cell === cell) {
+    return deselectStartCell(cell)
+  }
+
+  handleDestinationClick(cell)
+}
+
+function handlePurchasePlacement(cell) {
+  console.log("Handle purchase placement")
+}
+
+function handleSelectClick(cell) {
+  if (unitExistsOnTile(cell)) {
+    handleUnitSelect(cell);
+  }
+  if (structureExistsOnTile(cell)) {
+    handleStructureSelect(cell);
+  }
+}
+
+function handleDestinationClick(cell) {
+  if (MY_MOVE.end_cell === cell) {
     deselectEndCell(cell)
   } else {
     deselectAllEndCells()
     selectEndCell(cell)
   }
-  console.log(MY_MOVE)
+}
+
+function unitExistsOnTile(cell) {
+  const row = cell.id.split("_")[0]
+  const col = cell.id.split("_")[1]
+
+  return (IS_PLAYER_1 && BOARD[row][col].p1_units.length > 0) || (!IS_PLAYER_1 && BOARD[row][col].p2_units.length > 0)
+}
+
+function structureExistsOnTile(cell) {
+  const row = cell.id.split("_")[0]
+  const col = cell.id.split("_")[1]
+
+  return (IS_PLAYER_1 && BOARD[row][col].p1_structures.length > 0) || (!IS_PLAYER_1 && BOARD[row][col].p2_structures.length > 0)
+}
+
+function handleUnitSelect(cell) {
+  selectStartCell(cell);
+
+  const row = cell.id.split("_")[0]
+  const col = cell.id.split("_")[1]
+
+  if (IS_PLAYER_1) {
+    buildUnitDisplayTable(BOARD[row][col].p1_units)
+  } else {
+    buildUnitDisplayTable(BOARD[row][col].p2_units)
+  }
+}
+
+function handleStructureSelect(cell) {
+  console.log("Structure selected");
 }
 
 function selectStartCell(cell) {
@@ -53,6 +108,8 @@ function selectStartCell(cell) {
 }
 function deselectStartCell(cell) {
   MY_MOVE.start_cell = undefined
+  deselectAllEndCells()
+  hideUnitDisplayTable()
   cell.classList.remove('start-selected')
 }
 function selectEndCell(cell) {
@@ -94,13 +151,13 @@ function displayBoard() {
 
       cell.onclick = function(cell) {
         return function() {
-          handleSelectClick(cell)
+          handleClick(cell)
         }
       }(cell) // immediatlly invoke this function to tie it to correct cell
       container.appendChild(cell)
     }
   }
-  layerUnits()
+  layerUnitsAndStructures()
   layerFog()
 }
 
@@ -142,7 +199,7 @@ function layerFog() {
   }
 }
 
-function layerUnits() {
+function layerUnitsAndStructures() {
   const childNodes = document.getElementById("board").childNodes;
 
   for (const node of childNodes) {
@@ -152,14 +209,47 @@ function layerUnits() {
       document.getElementById(row + "_" + col).innerText = BOARD[row][col].p1_units[0].name
     } else if (!IS_PLAYER_1 && BOARD[row][col].p2_units.length > 0) {
       document.getElementById(row + "_" + col).innerText = BOARD[row][col].p2_units[0].name
+    } else if (IS_PLAYER_1 && BOARD[row][col].p1_structures.length > 0) {
+      document.getElementById(row + "_" + col).innerText = BOARD[row][col].p1_structures[0].name
+    } else if (!IS_PLAYER_1 && BOARD[row][col].p2_structures.length > 0) {
+      document.getElementById(row + "_" + col).innerText = BOARD[row][col].p2_structures[0].name
     } else {
       document.getElementById(row + "_" + col).innerText = ""
     }
   }
 }
 
+function hideUnitDisplayTable() {
+  document.getElementById("unit-list-wrapper").style.display = "none"
+
+  const tableList = document.getElementById("table-list");
+  const rows = tableList.querySelectorAll("tr:not(:first-child)");
+  rows.forEach((row) => {
+    row.remove();
+  });
+}
+
+function buildUnitDisplayTable(units) {
+  hideUnitDisplayTable()
+  document.getElementById("unit-list-wrapper").style.display = "block"
+
+  const tableList = document.getElementById("table-list");
+  for (const unit of units) {
+    const newRow = document.createElement("tr");
+    const newData = document.createElement("td");
+    newData.textContent = unit.name;
+    newRow.appendChild(newData);
+    tableList.appendChild(newRow);
+  }
+}
+
 // Reconcile global variables to server's values. Display elements.
 function ingestServerResponse(server_response) {
+  console.log("Server Response");
+  console.log(server_response)
+
+  hideUnitDisplayTable()
+
   BOARD = server_response.game_state.board
   P1_UNITS = server_response.game_state.p1_units
   P2_UNITS = server_response.game_state.p2_units
@@ -184,8 +274,6 @@ window.onload = () => {
   });
 
   socket.on('server_response', (server_response) => {
-    console.log("Server Response");
-    console.log(server_response);
     ingestServerResponse(server_response);
 
     document.title = "Your Turn"
@@ -215,6 +303,18 @@ window.onload = () => {
       socket.emit('submit_move', move_for_server);
       document.getElementById("submit_btn").disabled = true;
       MY_MOVE = {}
+    }
+  }
+
+  document.getElementById("purchase_submit_btn").onclick = () => {
+    if (PURCHASE_SELECTION_MODE) {
+      PURCHASE_SELECTION_MODE = false
+      document.getElementById("purchase_submit_btn").classList.remove('button_selected');
+      document.getElementById("submit_btn").disabled = false;
+    } else {
+      PURCHASE_SELECTION_MODE = true
+      document.getElementById("purchase_submit_btn").classList.add('button_selected');
+      document.getElementById("submit_btn").disabled = true;
     }
   }
 }
