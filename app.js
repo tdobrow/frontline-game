@@ -15,6 +15,10 @@ var startingStateGeneration = require('./server/startingStateGeneration')
 // var Unit = require('./server/unit')
 var MoveProcessor = require('./server/moveProcessor')
 
+const Unit = require('./server/unit');
+const Structure = require('./server/structure');
+
+
 var PLAYER_IDS = []
 
 var SUBMITTED_MOVES = {}
@@ -71,6 +75,9 @@ io.on('connection', function(socket) {
     if (SUBMITTED_MOVES['p1'] && SUBMITTED_MOVES['p2']) {
 
       processUnitMovements()
+      // processUnitAttacks()
+      processPurchases()
+
       computeIncome()
 
       emitMovesToPlayers()
@@ -133,8 +140,12 @@ function emitMovesToPlayers() {
 
 // TODO: validate move
 function processUnitMovements() {
-  moveUnits(SUBMITTED_MOVES.p1.start_cell_id, SUBMITTED_MOVES.p1.end_cell_id, 'p1_units')
-  moveUnits(SUBMITTED_MOVES.p2.start_cell_id, SUBMITTED_MOVES.p2.end_cell_id, 'p2_units')
+  for (const move of SUBMITTED_MOVES.p1.movements) {
+    moveUnits(move.start_cell_id, move.end_cell_id, 'p1_units')
+  }
+  for (const move of SUBMITTED_MOVES.p2.movements) {
+    moveUnits(move.start_cell_id, move.end_cell_id, 'p2_units')
+  }
 }
 
 function computeIncome() {
@@ -146,6 +157,55 @@ function computeIncome() {
         GAME_STATE.p2_resources += 1
       }
     }
+  }
+}
+
+function processPurchases() {
+  for (const move of SUBMITTED_MOVES.p1.placements) {
+    if (['Barracks', 'Watch_tower', 'Wall'].includes(move.type)) {
+      placeStructure(move, 1)
+    } else {
+      placeUnit(move, 1)
+    }
+  }
+  for (const move of SUBMITTED_MOVES.p2.placements) {
+    if (['Barracks', 'Watch_tower', 'Wall'].includes(move.type)) {
+      placeStructure(move, 2)
+    } else {
+      placeUnit(move, 2)
+    }
+  }
+}
+
+function placeUnit(move, player_number) {
+  const row = +move.start_cell_id.split('_')[0]
+  const col = +move.start_cell_id.split('_')[1]
+
+  const unit = new Unit(move.type, player_number, row, col)
+  if (player_number == 1) {
+    GAME_STATE.p1_units.push(unit)
+    GAME_STATE.board[row][col].p1_units.push(unit)
+    GAME_STATE.p1_resources -= unit.stats.cost
+  } else {
+    GAME_STATE.p2_units.push(unit)
+    GAME_STATE.board[row][col].p2_units.push(unit)
+    GAME_STATE.p2_resources -= unit.stats.cost
+  }
+}
+
+function placeStructure(move, player_number) {
+  const row = move.start_cell_id.split('_')[0]
+  const col = move.start_cell_id.split('_')[1]
+
+  const structure = new Structure(move.type, player_number, row, col)
+  if (player_number == 1) {
+    GAME_STATE.p1_structures.push(structure)
+    GAME_STATE.board[row][col].p1_structures.push(structure)
+    GAME_STATE.p1_resources -= structure.stats.cost
+  } else {
+    GAME_STATE.p2_structures.push(structure)
+    GAME_STATE.board[row][col].p2_structures.push(structure)
+    GAME_STATE.p2_resources -= structure.stats.cost
   }
 }
 

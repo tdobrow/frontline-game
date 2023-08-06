@@ -1,7 +1,6 @@
 const Unit = require('./unit');
 const Structure = require('./structure');
 
-
 (function() {
   module.exports.generateBoard = function(board_size) {
     const board = []

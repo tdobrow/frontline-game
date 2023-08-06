@@ -1,33 +1,37 @@
 import Display from './display.js'
 
-var SOCKET_ID = undefined
+// var SOCKET_ID = undefined
 var PURCHASE_SELECTION_MODE = false
 
 var socket = io();
 
 var MY_MOVE = {
-  'start_cell': undefined,
-  'end_cell': undefined,
+  'movements': [],
+  'attacks': [],
+  'placements': [],
 }
+// movements[0] = {
+//   'start_cell_id': '1_9',
+//   'end_cell_id': '2_9',
+// }
+// attacks[0] = {
+//   'start_cell_id': '3_4',
+//   'end_cell_id': '2_3',
+// }
+// placements[0] = {
+//   'start_cell_id': '4_5',
+//   'type': 'Infantry',
+// }
 
 var IS_PLAYER_1 = false
 var MY_RESOURCES = 0
+
+var display = undefined;
 
 // Reconcile global variables to server's values. Display elements.
 function ingestServerResponse(server_response) {
   console.log("Server Response");
   console.log(server_response)
-
-  const display = new Display(
-    server_response.game_state.board,
-    IS_PLAYER_1,
-    server_response.game_state.p1_units,
-    server_response.game_state.p2_units,
-    server_response.game_state.p1_structures,
-    server_response.game_state.p2_structures,
-    PURCHASE_SELECTION_MODE,
-    MY_MOVE
-  );
 
   if (IS_PLAYER_1) {
     MY_RESOURCES = server_response.game_state.p1_resources
@@ -36,6 +40,17 @@ function ingestServerResponse(server_response) {
   }
   document.getElementById("my_money").innerHTML = "$" + MY_RESOURCES
 
+  display = new Display(
+    server_response.game_state.board,
+    IS_PLAYER_1,
+    server_response.game_state.p1_units,
+    server_response.game_state.p2_units,
+    server_response.game_state.p1_structures,
+    server_response.game_state.p2_structures,
+    PURCHASE_SELECTION_MODE,
+    MY_MOVE,
+    MY_RESOURCES
+  );
 
   display.hideUnitDisplayTable()
   display.displayBoard()
@@ -59,7 +74,7 @@ window.onload = () => {
 
   socket.on('starting_info', (server_response) => {
   	IS_PLAYER_1 = server_response.is_player_1
-  	SOCKET_ID = server_response.socket_id
+  	// SOCKET_ID = server_response.socket_id
 
   	ingestServerResponse(server_response)
   });
@@ -69,33 +84,49 @@ window.onload = () => {
 
 // handle submit button click
 document.getElementById("submit_btn").onclick = () => {
-  if (MY_MOVE['start_cell'] && MY_MOVE['end_cell']) {
-    document.title = "Waiting on opponent"
+  document.title = "Waiting on opponent"
 
-    const move_for_server = {
-      is_player_1: IS_PLAYER_1,
-      start_cell_id: MY_MOVE.start_cell.id,
-      end_cell_id: MY_MOVE.end_cell.id
-    }
+  const move_for_server = {
+    is_player_1: IS_PLAYER_1,
+    movements: MY_MOVE.movements,
+    attacks: MY_MOVE.attacks,
+    placements: MY_MOVE.placements,
+  }
 
-    console.log("Submitting move")
-    console.log(move_for_server)
-    socket.emit('submit_move', move_for_server);
-    document.getElementById("submit_btn").disabled = true;
-    MY_MOVE = {}
+  console.log("Submitting move")
+  console.log(move_for_server)
+  socket.emit('submit_move', move_for_server);
+  document.getElementById("submit_btn").disabled = true;
+  MY_MOVE = {
+    'movements': [],
+    'attacks': [],
+    'placements': [],
   }
 }
 
 document.getElementById("purchase_submit_btn").onclick = () => {
   if (PURCHASE_SELECTION_MODE) {
-    Display.hideShop()
-    PURCHASE_SELECTION_MODE = false
-    document.getElementById("purchase_submit_btn").classList.remove('button_selected');
-    document.getElementById("submit_btn").disabled = false;
+    disablePurchaseMode();
   } else {
-    Display.showShop()
-    PURCHASE_SELECTION_MODE = true
-    document.getElementById("purchase_submit_btn").classList.add('button_selected');
-    document.getElementById("submit_btn").disabled = true;
+    enablePurchaseMode();
   }
+}
+
+function disablePurchaseMode() {
+  Display.hideShop()
+  display.disablePurchaseSelectionMode()
+
+  PURCHASE_SELECTION_MODE = false
+  document.getElementById("purchase_submit_btn").classList.remove('button_selected');
+  document.getElementById("submit_btn").disabled = false;
+}
+
+function enablePurchaseMode() {
+  Display.showShop()
+  display.deselectStartCell()
+  display.enablePurchaseSelectionMode()
+
+  PURCHASE_SELECTION_MODE = true
+  document.getElementById("purchase_submit_btn").classList.add('button_selected');
+  document.getElementById("submit_btn").disabled = true;
 }

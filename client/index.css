@@ -90,8 +90,8 @@ h3 {
   grid-template-columns: repeat(10, 1fr);
   grid-template-rows: repeat(10, 1fr);
   gap: 1px;
-  width: 80vh;
-  height: 80vh;
+  width: 700px;
+  height: 700px;
 }
 
 .tile {
@@ -129,6 +129,10 @@ h3 {
 }
 .end-selected {
   border-color: #ff0000;
+  border-width: 3px;
+}
+.purchase-selected {
+  border-color: #7abae0;
   border-width: 3px;
 }
 
@@ -170,7 +174,13 @@ h3 {
 }
 
 .shop {
-  margin: 20px;
+  padding-right: 20px;
+  padding-left: 20px;
+  padding-top: 10px;
+  padding-bottom: 20px;
+  background-color: #ffffbb;
+  height: 400px;
+  margin-top:20px;
 }
 .unit-list {
   margin: 20px;
@@ -192,6 +202,11 @@ th {
   background-color: #f2f2f2;
 }
 
-.unit-row.selected, .structure-row.selected {
+.unit-row.shop_selected, .structure-row.shop_selected {
   background-color: #aaf2aa;
+}
+
+.greyed-out {
+  opacity: 0.5;
+  pointer-events: none;
 }
