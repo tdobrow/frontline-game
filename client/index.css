@@ -168,7 +168,30 @@ h3 {
 .flex-container {
   display: flex;
 }
-.unit-list-wrapper {
-  flex: 1;
-  display: none;
+
+.shop {
+  margin: 20px;
+}
+.unit-list {
+  margin: 20px;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: center;
+}
+
+th {
+  background-color: #f2f2f2;
+}
+
+.unit-row.selected, .structure-row.selected {
+  background-color: #aaf2aa;
 }

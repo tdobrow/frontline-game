@@ -1,8 +1,8 @@
 class Structure {
   static statsMapping = {
-    barracks:    { hp: 3,  cost: 50 },
-    watch_tower: { hp: 3,  cost: 30 },
-    wall:        { hp: 10, cost: 30 },
+    Barracks:    { hp: 3,  cost: 50 },
+    Watch_tower: { hp: 3,  cost: 30 },
+    Wall:        { hp: 10, cost: 30 },
   };
 
   constructor(type, player, row, col) {

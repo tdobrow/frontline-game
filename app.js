@@ -54,7 +54,6 @@ io.on('connection', function(socket) {
   console.log("Players: ")
   console.log(PLAYER_IDS)
 
-  // When "submit_move" message comes in, call a function
   // Client Object:
   // {
   //   is_player_1: ,
@@ -72,6 +71,7 @@ io.on('connection', function(socket) {
     if (SUBMITTED_MOVES['p1'] && SUBMITTED_MOVES['p2']) {
 
       processUnitMovements()
+      computeIncome()
 
       emitMovesToPlayers()
       SUBMITTED_MOVES = {}
@@ -135,6 +135,18 @@ function emitMovesToPlayers() {
 function processUnitMovements() {
   moveUnits(SUBMITTED_MOVES.p1.start_cell_id, SUBMITTED_MOVES.p1.end_cell_id, 'p1_units')
   moveUnits(SUBMITTED_MOVES.p2.start_cell_id, SUBMITTED_MOVES.p2.end_cell_id, 'p2_units')
+}
+
+function computeIncome() {
+  for (var i=0; i<GAME_STATE.board.length; i++) {
+    for( var j=0; j<GAME_STATE.board.length; j++) {
+      if (GAME_STATE.board[i][j].ownership == 1) {
+        GAME_STATE.p1_resources += 1
+      } else if (GAME_STATE.board[i][j].ownership == 2) {
+        GAME_STATE.p2_resources += 1
+      }
+    }
+  }
 }
 
 function moveUnits(start_cell_id, end_cell_id, player_unit_key) {
