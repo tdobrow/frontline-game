@@ -28,7 +28,6 @@ var MY_RESOURCES = 0
 
 var display = undefined;
 
-// Reconcile global variables to server's values. Display elements.
 function ingestServerResponse(server_response) {
   console.log("Server Response");
   console.log(server_response)

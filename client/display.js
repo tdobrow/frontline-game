@@ -17,7 +17,10 @@ class Display {
     this.selected_start_cell = undefined;
     this.selected_end_cell = undefined;
 
+    this.svg_line_count = 0;
+
     this.greyOutUnaffordableItems();
+    this.clearSvgLayer();
   }
 
   enablePurchaseSelectionMode() {
@@ -119,8 +122,6 @@ class Display {
     });
   }
 
-  // Private methods
-
   handleClick(cell) {
     if (this.purchase_selection_mode) {
       return this.handlePurchasePlacement(cell);
@@ -187,6 +188,14 @@ class Display {
         start_cell_id: this.selected_start_cell.id,
         end_cell_id: cell.id
       })
+      this.drawArrowBetweenCells(
+        this.selected_start_cell.id.split('_')[0],
+        this.selected_start_cell.id.split('_')[1],
+        this.selected_end_cell.id.split('_')[0],
+        this.selected_end_cell.id.split('_')[1],
+        'movement'
+      );
+
       this.selected_start_cell = undefined;
       this.selected_end_cell = undefined;
     }
@@ -316,6 +325,48 @@ class Display {
       newRow.appendChild(newData2);
       tableList.appendChild(newRow);
     }
+  }
+
+  clearSvgLayer() {
+    while (document.getElementById('arrow-svg').childNodes.length > 0) {
+      document.getElementById('arrow-svg').childNodes[0].remove()
+    }
+    this.svg_line_count = 0;
+  }
+
+  drawArrowBetweenCells(ay, ax, by, bx, action) {
+    const arrowLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    arrowLine.setAttribute('id', `arrow-line-${this.svg_line_count}`);
+    const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    dot.setAttribute('id', `dot-${this.svg_line_count}`);
+
+    // values are percentages
+    const cellXCenterX = (ax * 10 + 5);
+    const cellXCenterY = (ay * 10 + 5);
+    const cellYCenterX = (bx * 10 + 5);
+    const cellYCenterY = (by * 10 + 5);
+
+    arrowLine.setAttribute('x1', cellXCenterX);
+    arrowLine.setAttribute('y1', cellXCenterY);
+    arrowLine.setAttribute('x2', cellYCenterX);
+    arrowLine.setAttribute('y2', cellYCenterY);
+
+    dot.setAttribute('cx', cellYCenterX);
+    dot.setAttribute('cy', cellYCenterY);
+    dot.setAttribute('r', 1);
+
+    if (action == 'movement') {
+      arrowLine.setAttribute('stroke', 'green');
+      dot.setAttribute('stroke', 'green');
+    }
+    if (action == 'attack') {
+      arrowLine.setAttribute('stroke', 'red');
+      dot.setAttribute('stroke', 'red');
+    }
+    this.svg_line_count += 1;
+
+    document.getElementById('arrow-svg').appendChild(arrowLine);
+    document.getElementById('arrow-svg').appendChild(dot);
   }
 }
 

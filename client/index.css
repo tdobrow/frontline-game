@@ -90,8 +90,8 @@ h3 {
   grid-template-columns: repeat(10, 1fr);
   grid-template-rows: repeat(10, 1fr);
   gap: 1px;
-  width: 700px;
-  height: 700px;
+  width: 730px;
+  height: 730px;
 }
 
 .tile {
@@ -209,4 +209,14 @@ th {
 .greyed-out {
   opacity: 0.5;
   pointer-events: none;
+}
+
+#arrow-svg {
+  position: absolute;
+  top: 110px;
+  left: 10px;
+  width: 730px;
+  height: 730px;
+  z-index: 10; /* Make sure the SVG is above the grid */
+  pointer-events: none; /* Make sure the SVG doesn't block mouse events */
 }

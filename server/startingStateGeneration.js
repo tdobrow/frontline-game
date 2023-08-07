@@ -2,16 +2,16 @@ const Unit = require('./unit');
 const Structure = require('./structure');
 
 (function() {
-  module.exports.generateBoard = function(board_size) {
+  module.exports.generateBoard = function() {
     const board = []
     const p1_units = []
     const p2_units = []
     const p1_structures = []
     const p2_structures = []
 
-    for (row=0; row<board_size; row+=1) {
+    for (row=0; row<10; row+=1) {
       const new_row = []
-      for (col=0; col<board_size; col+=1) {
+      for (col=0; col<10; col+=1) {
         if (col + row < 5 && row < 4 && col < 4) {
           new_row.push({
             'p1_units': [],

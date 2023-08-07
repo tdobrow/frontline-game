@@ -6,24 +6,19 @@
 var express = require('express')
 var path = require('path')
 var app = express()
-
 var http = require('http').createServer(app)
 var io = require('socket.io')(http)
 
-// Locally written server side code
 var startingStateGeneration = require('./server/startingStateGeneration')
-// var Unit = require('./server/unit')
-var MoveProcessor = require('./server/moveProcessor')
+// var MoveProcessor = require('./server/moveProcessor')
 
 const Unit = require('./server/unit');
 const Structure = require('./server/structure');
 
-
 var PLAYER_IDS = []
-
 var SUBMITTED_MOVES = {}
 
-const starting_state = startingStateGeneration.generateBoard(10)
+const starting_state = startingStateGeneration.generateBoard()
 var GAME_STATE = {
   'board': starting_state.board,
   'p1_units': starting_state.p1_units,
@@ -213,7 +208,6 @@ function moveUnits(start_cell_id, end_cell_id, player_unit_key) {
   moved_units = []
   GAME_STATE[player_unit_key].forEach(function(unit) {
     if (unit.row == start_cell_id.split('_')[0] && unit.col == start_cell_id.split('_')[1]) {
-      // Sets player unit list positions to new tile
       unit.row = +end_cell_id.split('_')[0]
       unit.col = +end_cell_id.split('_')[1]
 
