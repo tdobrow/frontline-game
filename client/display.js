@@ -2,13 +2,9 @@ import Unit from './unit.js'
 import Structure from './structure.js'
 
 class Display {
-  constructor(board, is_player_1, p1_units, p2_units, p1_structures, p2_structures, purchase_selection_mode, my_moves, my_money) {
+  constructor(board, is_player_1, purchase_selection_mode, my_moves, my_money) {
     this.board = board;
     this.is_player_1 = is_player_1;
-    this.p1_units = p1_units;
-    this.p2_units = p2_units;
-    this.p1_structures = p1_structures;
-    this.p2_structures = p2_structures;
     this.my_money = my_money;
 
     this.purchase_selection_mode = purchase_selection_mode;
@@ -172,7 +168,7 @@ class Display {
   }
 
   handleSelectClick(cell) {
-    if (this.unitExistsOnTile(cell)) {
+    if (this.unitExistsOnTile(cell, this.is_player_1)) {
       this.handleUnitSelect(cell);
     }
   }
@@ -184,28 +180,51 @@ class Display {
       // this.deselectAllEndCells()
       this.selectEndCell(cell)
 
-      this.my_moves.movements.push({
-        start_cell_id: this.selected_start_cell.id,
-        end_cell_id: cell.id
-      })
-      this.drawArrowBetweenCells(
-        this.selected_start_cell.id.split('_')[0],
-        this.selected_start_cell.id.split('_')[1],
-        this.selected_end_cell.id.split('_')[0],
-        this.selected_end_cell.id.split('_')[1],
-        'movement'
-      );
+      // if enemies on this cell
+      if (this.unitExistsOnTile(cell, !this.is_player_1)) {
+        this.handleAttackDestinationClick(cell);
+      } else {
+        this.handleMovementDestinationClick(cell);
+      }
 
       this.selected_start_cell = undefined;
       this.selected_end_cell = undefined;
     }
   }
 
-  unitExistsOnTile(cell) {
+  handleAttackDestinationClick(cell) {
+    this.my_moves.attacks.push({
+      start_cell_id: this.selected_start_cell.id,
+      end_cell_id: cell.id
+    })
+    this.drawArrowBetweenCells(
+      this.selected_start_cell.id.split('_')[0],
+      this.selected_start_cell.id.split('_')[1],
+      this.selected_end_cell.id.split('_')[0],
+      this.selected_end_cell.id.split('_')[1],
+      'attack'
+    );
+  }
+
+  handleMovementDestinationClick(cell) {
+    this.my_moves.movements.push({
+      start_cell_id: this.selected_start_cell.id,
+      end_cell_id: cell.id
+    })
+    this.drawArrowBetweenCells(
+      this.selected_start_cell.id.split('_')[0],
+      this.selected_start_cell.id.split('_')[1],
+      this.selected_end_cell.id.split('_')[0],
+      this.selected_end_cell.id.split('_')[1],
+      'movement'
+    );
+  }
+
+  unitExistsOnTile(cell, player_1) {
     const row = cell.id.split("_")[0]
     const col = cell.id.split("_")[1]
 
-    return (this.is_player_1 && this.board[row][col].p1_units.length > 0) || (!this.is_player_1 && this.board[row][col].p2_units.length > 0)
+    return (player_1 && this.board[row][col].p1_units.length > 0) || (!player_1 && this.board[row][col].p2_units.length > 0)
   }
 
   handleUnitSelect(cell) {
@@ -268,22 +287,30 @@ class Display {
       }
     }
     if (this.is_player_1) {
-      for (const unit of this.p1_units) {
-        for (let i = -1; i <= 1; i++) {
-          for (let j = -1; j <= 1; j++) {
-            const row = unit.row + i;
-            const col = unit.col + j;
-            document.getElementById(row + "_" + col)?.classList?.remove("fog");
+      for (let x=0; x < 10; x++) {
+        for (let y=0; y < 10; y++) {
+          for (const unit of this.board[x][y].p1_units) {
+            for (let i = -1; i <= 1; i++) {
+              for (let j = -1; j <= 1; j++) {
+                const row = unit.row + i;
+                const col = unit.col + j;
+                document.getElementById(row + "_" + col)?.classList?.remove("fog");
+              }
+            }
           }
         }
       }
     } else {
-      for (const unit of this.p2_units) {
-        for (let i = -1; i <= 1; i++) {
-          for (let j = -1; j <= 1; j++) {
-            const row = unit.row + i;
-            const col = unit.col + j;
-            document.getElementById(row + "_" + col)?.classList?.remove("fog");
+      for (let x=0; x < 10; x++) {
+        for (let y=0; y < 10; y++) {
+          for (const unit of this.board[x][y].p2_units) {
+            for (let i = -1; i <= 1; i++) {
+              for (let j = -1; j <= 1; j++) {
+                const row = unit.row + i;
+                const col = unit.col + j;
+                document.getElementById(row + "_" + col)?.classList?.remove("fog");
+              }
+            }
           }
         }
       }

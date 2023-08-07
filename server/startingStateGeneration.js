@@ -4,10 +4,6 @@ const Structure = require('./structure');
 (function() {
   module.exports.generateBoard = function() {
     const board = []
-    const p1_units = []
-    const p2_units = []
-    const p1_structures = []
-    const p2_structures = []
 
     for (row=0; row<10; row+=1) {
       const new_row = []
@@ -40,36 +36,18 @@ const Structure = require('./structure');
       }
       board.push(new_row)
     }
-    let unit = new Unit('Infantry', 1, 1, 3)
-    board[1][3].p1_units.push(unit)
-    p1_units.push(unit)
+    board[1][3].p1_units.push(new Unit('Infantry', 1, 1, 3))
+    board[3][1].p1_units.push(new Unit('Infantry', 1, 3, 1))
 
-    unit = new Unit('Infantry', 1, 3, 1)
-    board[3][1].p1_units.push(unit)
-    p1_units.push(unit)
+    board[8][6].p2_units.push(new Unit('Infantry', 2, 8, 6))
+    board[6][8].p2_units.push(new Unit('Infantry', 2, 6, 8))
 
-    unit = new Unit('Infantry', 2, 8, 6)
-    board[8][6].p2_units.push(unit)
-    p2_units.push(unit)
+    board[1][1].p1_structures.push(new Structure('Barracks', 1, 1, 1))
 
-    unit = new Unit('Infantry', 2, 6, 8)
-    board[6][8].p2_units.push(unit)
-    p2_units.push(unit)
-
-    let barracks = new Structure('Barracks', 1, 1, 1)
-    board[1][1].p1_structures.push(barracks)
-    p1_structures.push(barracks)
-
-    barracks = new Structure('Barracks', 2, 8, 8)
-    board[8][8].p2_structures.push(barracks)
-    p2_structures.push(barracks)
+    board[8][8].p2_structures.push(new Structure('Barracks', 2, 8, 8))
 
     return {
       'board': board,
-      'p1_units': p1_units,
-      'p2_units': p2_units,
-      'p1_structures': p1_structures,
-      'p2_structures': p2_structures,
     }
   }
 }())

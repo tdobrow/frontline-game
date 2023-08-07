@@ -16,7 +16,7 @@ class Structure {
     this.col = col;
 
     this.name = `P${player}-${type}`;
-    this.stats = Structure.statsMapping[type];
+    this.stats = JSON.parse(JSON.stringify(Structure.statsMapping[type]));
   }
 }
 

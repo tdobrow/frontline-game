@@ -42,10 +42,6 @@ function ingestServerResponse(server_response) {
   display = new Display(
     server_response.game_state.board,
     IS_PLAYER_1,
-    server_response.game_state.p1_units,
-    server_response.game_state.p2_units,
-    server_response.game_state.p1_structures,
-    server_response.game_state.p2_structures,
     PURCHASE_SELECTION_MODE,
     MY_MOVE,
     MY_RESOURCES

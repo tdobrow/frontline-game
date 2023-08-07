@@ -21,10 +21,6 @@ var SUBMITTED_MOVES = {}
 const starting_state = startingStateGeneration.generateBoard()
 var GAME_STATE = {
   'board': starting_state.board,
-  'p1_units': starting_state.p1_units,
-  'p2_units': starting_state.p2_units,
-  'p1_structures': starting_state.p1_structures,
-  'p2_structures': starting_state.p2_structures,
   'p1_resources': 0,
   'p2_resources': 0
 }
@@ -70,7 +66,7 @@ io.on('connection', function(socket) {
     if (SUBMITTED_MOVES['p1'] && SUBMITTED_MOVES['p2']) {
 
       processUnitMovements()
-      // processUnitAttacks()
+      processUnitAttacks()
       processPurchases()
 
       computeIncome()
@@ -143,6 +139,16 @@ function processUnitMovements() {
   }
 }
 
+function processUnitAttacks() {
+  for (const attack of SUBMITTED_MOVES.p1.attacks) {
+    attackUnits(attack.start_cell_id, attack.end_cell_id, 'p1_units')
+  }
+  for (const attack of SUBMITTED_MOVES.p2.attacks) {
+    attackUnits(attack.start_cell_id, attack.end_cell_id, 'p2_units')
+  }
+  cleanupDeadUnits()
+}
+
 function computeIncome() {
   for (var i=0; i<GAME_STATE.board.length; i++) {
     for( var j=0; j<GAME_STATE.board.length; j++) {
@@ -178,11 +184,9 @@ function placeUnit(move, player_number) {
 
   const unit = new Unit(move.type, player_number, row, col)
   if (player_number == 1) {
-    GAME_STATE.p1_units.push(unit)
     GAME_STATE.board[row][col].p1_units.push(unit)
     GAME_STATE.p1_resources -= unit.stats.cost
   } else {
-    GAME_STATE.p2_units.push(unit)
     GAME_STATE.board[row][col].p2_units.push(unit)
     GAME_STATE.p2_resources -= unit.stats.cost
   }
@@ -194,30 +198,69 @@ function placeStructure(move, player_number) {
 
   const structure = new Structure(move.type, player_number, row, col)
   if (player_number == 1) {
-    GAME_STATE.p1_structures.push(structure)
     GAME_STATE.board[row][col].p1_structures.push(structure)
     GAME_STATE.p1_resources -= structure.stats.cost
   } else {
-    GAME_STATE.p2_structures.push(structure)
     GAME_STATE.board[row][col].p2_structures.push(structure)
     GAME_STATE.p2_resources -= structure.stats.cost
   }
 }
 
 function moveUnits(start_cell_id, end_cell_id, player_unit_key) {
-  moved_units = []
-  GAME_STATE[player_unit_key].forEach(function(unit) {
-    if (unit.row == start_cell_id.split('_')[0] && unit.col == start_cell_id.split('_')[1]) {
-      unit.row = +end_cell_id.split('_')[0]
-      unit.col = +end_cell_id.split('_')[1]
+  const moved_units = []
+  for (let row=0; row<10; row++) {
+    for (let col=0; col<10; col++) {
+      GAME_STATE.board[row][col][player_unit_key].forEach(function(unit) {
+        if (unit.row == start_cell_id.split('_')[0] && unit.col == start_cell_id.split('_')[1]) {
+          unit.row = +end_cell_id.split('_')[0]
+          unit.col = +end_cell_id.split('_')[1]
 
-      moved_units.push(unit);
+          moved_units.push(unit);
+        }
+      })
     }
-  })
+  }
   // Move Game board units onto tile
   GAME_STATE.board[start_cell_id.split('_')[0]][start_cell_id.split('_')[1]][player_unit_key] = []
   GAME_STATE.board[end_cell_id.split('_')[0]][end_cell_id.split('_')[1]][player_unit_key].push(...moved_units)
 
   // Change ownership of tile
   GAME_STATE.board[end_cell_id.split('_')[0]][end_cell_id.split('_')[1]].ownership = player_unit_key == 'p1_units' ? 1 : 2
+}
+
+function attackUnits(start_cell_id, end_cell_id, player_unit_key) {
+  attack_damage = 0
+  enemy_unit_key = player_unit_key == 'p1_units' ? 'p2_units' : 'p1_units'
+  updated_enemy_units = GAME_STATE.board[end_cell_id.split('_')[0]][end_cell_id.split('_')[1]][enemy_unit_key]
+
+  GAME_STATE.board[start_cell_id.split('_')[0]][start_cell_id.split('_')[1]][player_unit_key].map(function(unit) {
+    attack_damage += unit.stats.damage
+  })
+
+  unit_attacked_index = 0
+  while(attack_damage > 0 && updated_enemy_units.length > 0 && unit_attacked_index < updated_enemy_units.length) {
+    updated_enemy_units[unit_attacked_index].stats.hp -= 1
+    if (updated_enemy_units[unit_attacked_index].stats.hp <= 0) {
+      updated_enemy_units[unit_attacked_index].getDead()
+      unit_attacked_index += 1
+    }
+    attack_damage -= 1
+  }
+}
+
+function cleanupDeadUnits() {
+  for (let row=0; row<10; row++) {
+    for (let col=0; col<10; col++) {
+      for (let unit of GAME_STATE.board[row][col].p1_units) {
+        if (unit.isDead) {
+          GAME_STATE.board[row][col].p1_units.splice(GAME_STATE.board[row][col].p1_units.indexOf(unit), 1)
+        }
+      }
+      for (let unit of GAME_STATE.board[row][col].p2_units) {
+        if (unit.isDead) {
+          GAME_STATE.board[row][col].p2_units.splice(GAME_STATE.board[row][col].p2_units.indexOf(unit), 1)
+        }
+      }
+    }
+  }
 }
