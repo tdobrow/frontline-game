@@ -9,6 +9,10 @@ BUGS:
 - purchase shit so awkward
 - terratory claiming is weird and awkward. Maybe you claim in the ring around you
 
+FIGURE OUT:
+when I run into ssh issue I need to:
+eval "$(ssh-agent -s)"
+ssh-add ~/.ssh/id_rsa_personal
 
 TODO:
 --
