@@ -171,21 +171,20 @@ function setOwnership() {
   // If there is a unit on it, that's the owner.
   // If it is owner, AND there is an enemy adjacent, AND there is not friendly adjacent, then it becomes neutral
   for (var i=0; i<GAME_STATE.board.length; i++) {
-    for( var j=0; j<GAME_STATE.board.length; j++) {
+    for(var j=0; j<GAME_STATE.board.length; j++) {
       if (GAME_STATE.board[i][j].p1_units.length > 0) {
         GAME_STATE.board[i][j].ownership = 1
       } else if (GAME_STATE.board[i][j].p2_units.length > 0) {
         GAME_STATE.board[i][j].ownership = 2
       } else { // No units
-        if (GAME_STATE.board[i][j].ownership == 1) {
-          if (isAdjacent(i, j, 'p2_units') && !isAdjacent(i, j, 'p1_units')) {
-            GAME_STATE.board[i][j].ownership = 0
-          }
-        }
-        if (GAME_STATE.board[i][j].ownership == 2) {
-          if (isAdjacent(i, j, 'p1_units') && !isAdjacent(i, j, 'p2_units')) {
-            GAME_STATE.board[i][j].ownership = 0
-          }
+        const p1_adjascent = isAdjacent(i, j, 'p1_units')
+        const p2_adjascent = isAdjacent(i, j, 'p2_units')
+        if (p1_adjascent && !p2_adjascent) {
+          GAME_STATE.board[i][j].ownership = 1
+        } else if (!p1_adjascent && p2_adjascent) {
+          GAME_STATE.board[i][j].ownership = 2
+        } else if (p1_adjascent && p2_adjascent) {
+          GAME_STATE.board[i][j].ownership = 0
         }
       }
     }

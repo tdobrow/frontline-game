@@ -123,6 +123,10 @@ class Display {
       return this.handlePurchasePlacement(cell);
     }
 
+    if (handleSvgClear()) {
+      return;
+    }
+
     if (this.selected_start_cell === undefined) {
       return this.handleSelectClick(cell)
     }
@@ -131,6 +135,41 @@ class Display {
     }
 
     this.handleDestinationClick(cell)
+  }
+
+  handleSvgClear() {
+    let svg_clear = false;
+    for (let i=0; i < this.my_moves.movements.length; i++) {
+      let movement = this.my_moves.movements[i];
+      if (movement.start_cell_id == cell.id) {
+        this.deselectStartCell();
+        svg_clear = true;
+
+        var parentElement = document.getElementById('arrow-svg');
+
+        var childElement1 = document.getElementById(`dot-${cell.id}`);
+        var childElement2 = document.getElementById(`arrow-line-${cell.id}`);
+        parentElement.removeChild(childElement1);
+        parentElement.removeChild(childElement2);
+        this.my_moves.movements.splice(i, 1);
+      }
+    }
+    for (let i=0; i < this.my_moves.attacks.length; i++) {
+      let attack = this.my_moves.attacks[i];
+      if (attack.start_cell_id == cell.id) {
+        this.deselectStartCell();
+        svg_clear = true;
+
+        var parentElement = document.getElementById('arrow-svg');
+
+        var childElement1 = document.getElementById(`dot-${cell.id}`);
+        var childElement2 = document.getElementById(`arrow-line-${cell.id}`);
+        parentElement.removeChild(childElement1);
+        parentElement.removeChild(childElement2);
+        this.my_moves.attack.splice(i, 1);
+      }
+    }
+    return svg_clear;
   }
 
   handlePurchasePlacement(cell) {
@@ -171,25 +210,25 @@ class Display {
     if (this.unitExistsOnTile(cell, this.is_player_1)) {
       this.handleUnitSelect(cell);
     }
+    // TODO: implement sane purchase selection
+    // else if (this.structureExistsOnTile(cell, this.is_player_1)) {
+    //   this.handleStructureSelect(cell);
+    // }
   }
 
   handleDestinationClick(cell) {
-    if (this.selected_end_cell === cell) {
-      this.deselectEndCell(cell)
+    this.selected_end_cell = cell
+
+    // if enemies on this cell
+    if (this.unitExistsOnTile(cell, !this.is_player_1)) {
+      this.handleAttackDestinationClick(cell);
     } else {
-      // this.deselectAllEndCells()
-      this.selectEndCell(cell)
-
-      // if enemies on this cell
-      if (this.unitExistsOnTile(cell, !this.is_player_1)) {
-        this.handleAttackDestinationClick(cell);
-      } else {
-        this.handleMovementDestinationClick(cell);
-      }
-
-      this.selected_start_cell = undefined;
-      this.selected_end_cell = undefined;
+      this.handleMovementDestinationClick(cell);
     }
+
+    this.deselectStartCell();
+    this.selected_start_cell = undefined;
+    this.selected_end_cell = undefined;
   }
 
   handleAttackDestinationClick(cell) {
@@ -227,6 +266,26 @@ class Display {
     return (player_1 && this.board[row][col].p1_units.length > 0) || (!player_1 && this.board[row][col].p2_units.length > 0)
   }
 
+  structureExistsOnTile(cell, player_1) {
+    const row = cell.id.split("_")[0]
+    const col = cell.id.split("_")[1]
+
+    return (player_1 && this.board[row][col].p1_structures.length > 0) || (!player_1 && this.board[row][col].p2_structures.length > 0)
+  }
+
+  handleStructureSelect(cell) {
+    this.selectStartCell(cell);
+
+    const row = cell.id.split("_")[0]
+    const col = cell.id.split("_")[1]
+
+    if (this.is_player_1) {
+      this.buildPieceDisplayTable(this.board[row][col].p1_structures, [])
+    } else {
+      this.buildPieceDisplayTable(this.board[row][col].p2_structures, [])
+    }
+  }
+
   handleUnitSelect(cell) {
     this.selectStartCell(cell);
 
@@ -234,9 +293,9 @@ class Display {
     const col = cell.id.split("_")[1]
 
     if (this.is_player_1) {
-      this.buildUnitDisplayTable(this.board[row][col].p1_units, this.board[row][col].p1_structures)
+      this.buildPieceDisplayTable(this.board[row][col].p1_units, this.board[row][col].p1_structures)
     } else {
-      this.buildUnitDisplayTable(this.board[row][col].p2_units, this.board[row][col].p2_structures)
+      this.buildPieceDisplayTable(this.board[row][col].p2_units, this.board[row][col].p2_structures)
     }
   }
 
@@ -247,27 +306,9 @@ class Display {
 
   deselectStartCell() {
     this.selected_start_cell = undefined
-    this.deselectAllEndCells()
     this.hideUnitDisplayTable()
     document.getElementById('board').childNodes.forEach(function(cell) {
       cell.classList.remove('start-selected');
-    });
-  }
-
-  selectEndCell(cell) {
-    this.selected_end_cell = cell
-    cell.classList.add('end-selected')
-  }
-
-  deselectEndCell(cell) {
-    this.selected_end_cell = undefined
-    cell.classList.remove('end-selected')
-  }
-
-  deselectAllEndCells() {
-    this.selected_end_cell = undefined;
-    document.getElementById('board').childNodes.forEach(function(cell) {
-      cell.classList.remove('end-selected');
     });
   }
 
@@ -337,7 +378,7 @@ class Display {
     }
   }
 
-  buildUnitDisplayTable(units, structures) {
+  buildPieceDisplayTable(units, structures) {
     this.hideUnitDisplayTable()
     document.getElementById("unit-list").style.display = "block"
 
@@ -363,9 +404,9 @@ class Display {
 
   drawArrowBetweenCells(ay, ax, by, bx, action) {
     const arrowLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    arrowLine.setAttribute('id', `arrow-line-${this.svg_line_count}`);
+    arrowLine.setAttribute('id', `arrow-line-${ay}_${ax}`);
     const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    dot.setAttribute('id', `dot-${this.svg_line_count}`);
+    dot.setAttribute('id', `dot-${ay}_${ax}`);
 
     // values are percentages
     const cellXCenterX = (ax * 10 + 5);
