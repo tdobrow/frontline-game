@@ -277,11 +277,11 @@ class Display {
     for (const node of childNodes) {
       const row = node.id.split("_")[0]
       const col = node.id.split("_")[1]
-      if (this.is_player_1 && this.board[row][col].p1_units.length == 0 && this.board[row][col].ownership !== 1) {
+      if (this.is_player_1 && this.board[row][col].p1_units.length == 0 && this.board[row][col].ownership !== 1 && !this.isAdjacent(+row, +col, 'p1_units')) {
         node.classList.add("fog");
         document.getElementById(row + "_" + col).innerText = "";
       }
-      if (!this.is_player_1 && this.board[row][col].p2_units.length == 0 && this.board[row][col].ownership !== 2) {
+      if (!this.is_player_1 && this.board[row][col].p2_units.length == 0 && this.board[row][col].ownership !== 2 && !this.isAdjacent(+row, +col, 'p2_units')) {
         node.classList.add("fog");
         document.getElementById(row + "_" + col).innerText = "";
       }
@@ -323,13 +323,13 @@ class Display {
     for (const node of childNodes) {
       const row = node.id.split("_")[0]
       const col = node.id.split("_")[1]
-      if (this.is_player_1 && this.board[row][col].p1_units.length > 0) {
+      if (this.board[row][col].p1_units.length > 0) {
         document.getElementById(row + "_" + col).innerText = this.board[row][col].p1_units[0].name
-      } else if (!this.is_player_1 && this.board[row][col].p2_units.length > 0) {
+      } else if (this.board[row][col].p2_units.length > 0) {
         document.getElementById(row + "_" + col).innerText = this.board[row][col].p2_units[0].name
-      } else if (this.is_player_1 && this.board[row][col].p1_structures.length > 0) {
+      } else if (this.board[row][col].p1_structures.length > 0) {
         document.getElementById(row + "_" + col).innerText = this.board[row][col].p1_structures[0].name
-      } else if (!this.is_player_1 && this.board[row][col].p2_structures.length > 0) {
+      } else if (this.board[row][col].p2_structures.length > 0) {
         document.getElementById(row + "_" + col).innerText = this.board[row][col].p2_structures[0].name
       } else {
         document.getElementById(row + "_" + col).innerText = ""
@@ -394,6 +394,34 @@ class Display {
 
     document.getElementById('arrow-svg').appendChild(arrowLine);
     document.getElementById('arrow-svg').appendChild(dot);
+  }
+
+  isAdjacent(i, j, units_key) {
+    if (i > 0 && this.board[i-1][j][units_key].length > 0) {
+      return true
+    }
+    if (i > 0 && j > 0 && this.board[i-1][j-1][units_key].length > 0) {
+      return true
+    }
+    if (i > 0 && j < 9 && this.board[i-1][j+1][units_key].length > 0) {
+      return true
+    }
+    if (i < 9 && j > 0 && this.board[i+1][j-1][units_key].length > 0) {
+      return true
+    }
+    if (i < 9 && this.board[i+1][j][units_key].length > 0) {
+      return true
+    }
+    if (i < 9 && j < 9 && this.board[i+1][j+1][units_key].length > 0) {
+      return true
+    }
+    if (j > 0 && this.board[i][j-1][units_key].length > 0) {
+      return true
+    }
+    if (j < 9 && this.board[i][j+1][units_key].length > 0) {
+      return true
+    }
+    return false
   }
 }
 

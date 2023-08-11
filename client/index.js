@@ -32,6 +32,9 @@ function ingestServerResponse(server_response) {
   console.log("Server Response");
   console.log(server_response)
 
+  document.title = "Your Turn"
+  document.getElementById("submit_btn").disabled = false;
+
   if (IS_PLAYER_1) {
     MY_RESOURCES = server_response.game_state.p1_resources
   } else {
@@ -62,9 +65,6 @@ window.onload = () => {
 
   socket.on('server_response', (server_response) => {
     ingestServerResponse(server_response);
-
-    document.title = "Your Turn"
-    document.getElementById("submit_btn").disabled = false;
   });
 
   socket.on('starting_info', (server_response) => {

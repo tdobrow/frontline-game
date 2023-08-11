@@ -3,6 +3,13 @@ Frontline Game
 Server / Client Interface:
 todo: write
 
+BUGS:
+- a moves to b , b moves to c moves all of them. Unit moves need to be handled one at a time
+- need to be able to click on an svg element to remove that action
+- purchase shit so awkward
+- terratory claiming is weird and awkward. Maybe you claim in the ring around you
+
+
 TODO:
 --
 Combine unit and structure configs between frontend and backend without using some webpack shit
