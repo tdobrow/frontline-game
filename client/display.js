@@ -123,7 +123,7 @@ class Display {
       return this.handlePurchasePlacement(cell);
     }
 
-    if (handleSvgClear()) {
+    if (this.handleSvgClear(cell)) {
       return;
     }
 
@@ -137,7 +137,7 @@ class Display {
     this.handleDestinationClick(cell)
   }
 
-  handleSvgClear() {
+  handleSvgClear(cell) {
     let svg_clear = false;
     for (let i=0; i < this.my_moves.movements.length; i++) {
       let movement = this.my_moves.movements[i];
@@ -221,9 +221,13 @@ class Display {
 
     // if enemies on this cell
     if (this.unitExistsOnTile(cell, !this.is_player_1)) {
-      this.handleAttackDestinationClick(cell);
+      if (this.validAttackDestination(this.selected_start_cell, cell, this.is_player_1)) {
+        this.handleAttackDestinationClick(cell);
+      }
     } else {
-      this.handleMovementDestinationClick(cell);
+      if (this.validMoveDestination(this.selected_start_cell, cell, this.is_player_1)) {
+        this.handleMovementDestinationClick(cell);
+      }
     }
 
     this.deselectStartCell();
@@ -257,6 +261,34 @@ class Display {
       this.selected_end_cell.id.split('_')[1],
       'movement'
     );
+  }
+
+  validAttackDestination(start_cell, end_cell, player_1) {
+    const start_row = start_cell.id.split("_")[0]
+    const start_col = start_cell.id.split("_")[1]
+    const end_row = end_cell.id.split("_")[0]
+    const end_col = end_cell.id.split("_")[1]
+    const distance = Math.abs(start_row - end_row) + Math.abs(start_col - end_col)
+
+    // TODO: check for Artillery? Check for towers that give range?
+    return distance <= 2
+  }
+
+  validMoveDestination(start_cell, end_cell, player_1) {
+    const start_row = start_cell.id.split("_")[0]
+    const start_col = start_cell.id.split("_")[1]
+    const end_row = end_cell.id.split("_")[0]
+    const end_col = end_cell.id.split("_")[1]
+
+    const units = player_1 ? this.board[start_row][start_col].p1_units : this.board[start_row][start_col].p2_units
+    const distance = Math.abs(start_row - end_row) + Math.abs(start_col - end_col)
+
+    for (let unit of units) {
+      if (unit.stats.speed < distance) {
+        return false
+      }
+    }
+    return true;
   }
 
   unitExistsOnTile(cell, player_1) {
