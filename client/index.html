@@ -19,7 +19,7 @@
       </div>
     </div>
 
-    <!-- <div class="flex-container"> -->
+    <div class="flex-container">
       <div id="board" class="board"></div>
 
       <svg id="arrow-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"></svg>
@@ -29,11 +29,14 @@
           <tr>
             <th>Type</th>
             <th>Health</th>
+            <th>Speed</th>
+            <th>Range</th>
+            <th>Damage</th>
           </tr>
         </table>
       </div>
 
-      <div id="shop" class="shop" style="display: none;">
+      <div id="shop" class="shop">
         <h2>Unit Shop</h2>
         <table>
           <tr>
@@ -91,7 +94,7 @@
             <td>50</td>
             <td>3</td>
           </tr>
-          <tr id="Watch_tower" class="structure-row">
+          <!-- <tr id="Watch_tower" class="structure-row">
             <td>Watch Tower</td>
             <td>30</td>
             <td>3</td>
@@ -100,9 +103,17 @@
             <td>Wall</td>
             <td>30</td>
             <td>10</td>
-          </tr>
+          </tr> -->
         </table>
-      <!-- </div> -->
+      </div>
+
+      <div id="chatbox" class="chatbox">
+        <div class="chat-messages" id="chat-messages">
+        </div>
+        <div class="chat-input">
+          <input type="text" id="message-input" placeholder="Type your message...">
+        </div>
+    </div>
     </div>
   </body>
 </html>

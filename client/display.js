@@ -2,12 +2,11 @@ import Unit from './unit.js'
 import Structure from './structure.js'
 
 class Display {
-  constructor(board, is_player_1, purchase_selection_mode, my_moves, my_money) {
+  constructor(board, is_player_1, my_moves, my_money) {
     this.board = board;
     this.is_player_1 = is_player_1;
     this.my_money = my_money;
 
-    this.purchase_selection_mode = purchase_selection_mode;
     this.my_moves = my_moves;
 
     this.selected_start_cell = undefined;
@@ -17,14 +16,6 @@ class Display {
 
     this.greyOutUnaffordableItems();
     this.clearSvgLayer();
-  }
-
-  enablePurchaseSelectionMode() {
-    this.purchase_selection_mode = true;
-  }
-
-  disablePurchaseSelectionMode() {
-    this.purchase_selection_mode = false;
   }
 
   greyOutUnaffordableItems() {
@@ -52,24 +43,18 @@ class Display {
     const structureRows = document.querySelectorAll('.structure-row');
 
     function handleRowClick(event) {
+      const selected = event.currentTarget.classList.contains('shop_selected');
+
       unitRows.forEach(row => row.classList.remove('shop_selected'));
       structureRows.forEach(row => row.classList.remove('shop_selected'));
 
-      event.currentTarget.classList.add('shop_selected');
+      if (!selected) {
+        event.currentTarget.classList.add('shop_selected');
+      }
     }
 
     unitRows.forEach(row => row.addEventListener('click', handleRowClick));
     structureRows.forEach(row => row.addEventListener('click', handleRowClick));
-  }
-
-  static hideShop() {
-    document.querySelectorAll('.unit-row').forEach(row => row.classList.remove('shop_selected'));
-    document.querySelectorAll('.structure-row').forEach(row => row.classList.remove('shop_selected'));
-    document.getElementById("shop").style.display = "none"
-  }
-
-  static showShop() {
-    document.getElementById("shop").style.display = "block"
   }
 
   displayBoard() {
@@ -132,11 +117,84 @@ class Display {
     });
   }
 
+  unitShopRowSelected() {
+    const unitRows = document.querySelectorAll('.unit-row');
+
+    let selected = false;
+    unitRows.forEach((row) => {
+      if (row.classList.contains('shop_selected')) {
+        selected = true;
+      }
+    });
+
+    return selected;
+  }
+
+  structureShopRowSelected() {
+    const structureRows = document.querySelectorAll('.structure-row');
+
+    let selected = false;
+    structureRows.forEach((row) => {
+      if (row.classList.contains('shop_selected')) {
+        selected = true;
+      }
+    });
+
+    return selected;
+  }
+
+  placePiece(cell) {
+    this.my_moves.placements.push({
+      start_cell_id: cell.id,
+      type: document.querySelector('.shop_selected').id
+    })
+    document.getElementById("my_money").innerHTML = "$" + this.my_money
+
+    cell.classList.add('purchase-selected');
+
+    document.querySelectorAll('.unit-row').forEach(row => row.classList.remove('shop_selected'));
+    document.querySelectorAll('.structure-row').forEach(row => row.classList.remove('shop_selected'));
+  }
+
   handleClick(cell) {
     this.hidePieceDisplayTable()
 
-    if (this.purchase_selection_mode) {
-      return this.handlePurchasePlacement(cell);
+    if (this.unitShopRowSelected()) {
+      const row = cell.id.split("_")[0];
+      const col = cell.id.split("_")[1];
+      const board_cell = this.board[row][col];
+      if (
+        (this.is_player_1 && (board_cell.p1_structures.length > 0 && board_cell.p1_structures[0].type == 'Barracks')) ||
+        (!this.is_player_1 && (board_cell.p2_structures.length > 0 && board_cell.p2_structures[0].type == 'Barracks'))
+      ) {
+        this.placePiece(cell);
+        this.my_money -= Unit.statsMapping[document.querySelector('.shop_selected').id].cost;
+
+        return;
+      } else {
+        return;
+      }
+    }
+    if (this.structureShopRowSelected()) {
+      const row = cell.id.split("_")[0];
+      const col = cell.id.split("_")[1];
+      const board_cell = this.board[row][col];
+
+      if (
+        (this.is_player_1 && board_cell.ownership == 1 && board_cell.p1_structures.length == 0) ||
+        (!this.is_player_1 && board_cell.ownership == 2 && board_cell.p2_structures.length == 0)
+      ) {
+        this.my_moves.placements.push({
+          start_cell_id: cell.id,
+          type: document.querySelector('.shop_selected').id
+        })
+        this.placePiece(cell);
+        this.my_money -= Structure.statsMapping[document.querySelector('.shop_selected').id].cost;
+
+        return;
+      } else {
+        return;
+      }
     }
 
     if (this.handleSvgClear(cell)) {
@@ -188,48 +246,10 @@ class Display {
     return svg_clear;
   }
 
-  handlePurchasePlacement(cell) {
-    if (!document.querySelector('.shop_selected')) {
-      return;
-    }
-
-    const row = cell.id.split("_")[0]
-    const col = cell.id.split("_")[1]
-
-    if (['Barracks', 'Watch_tower', 'Wall'].includes(document.querySelector('.shop_selected').id)) {
-      if (this.is_player_1 && (this.board[row][col].p1_structures.length > 0 || this.board[row][col].ownership !== 1)) {
-        return;
-      }
-      if (!this.is_player_1 && (this.board[row][col].p2_structures.length > 0 || this.board[row][col].ownership !== 2)) {
-        return;
-      }
-    } else {
-      if (this.is_player_1 && (this.board[row][col].p1_structures.length == 0 || this.board[row][col].p1_structures[0].type !== 'Barracks')) {
-        return;
-      }
-      if (!this.is_player_1 && (this.board[row][col].p2_structures.length == 0 || this.board[row][col].p2_structures[0].type !== 'Barracks')) {
-        return;
-      }
-    }
-
-    this.my_moves.placements.push({
-      start_cell_id: cell.id,
-      type: document.querySelector('.shop_selected').id
-    })
-    cell.classList.add('purchase-selected')
-
-    document.querySelectorAll('.unit-row').forEach(row => row.classList.remove('shop_selected'));
-    document.querySelectorAll('.structure-row').forEach(row => row.classList.remove('shop_selected'));
-  }
-
   handleSelectClick(cell) {
     if (this.unitExistsOnTile(cell, this.is_player_1)) {
-      this.handleUnitSelect(cell);
+      this.selectStartCell(cell);
     }
-    // TODO: implement sane purchase selection
-    // else if (this.structureExistsOnTile(cell, this.is_player_1)) {
-    //   this.handleStructureSelect(cell);
-    // }
   }
 
   handleDestinationClick(cell) {
@@ -312,34 +332,6 @@ class Display {
     const col = cell.id.split("_")[1]
 
     return (player_1 && this.board[row][col].p1_units.length > 0) || (!player_1 && this.board[row][col].p2_units.length > 0)
-  }
-
-  structureExistsOnTile(cell, player_1) {
-    const row = cell.id.split("_")[0]
-    const col = cell.id.split("_")[1]
-
-    return (player_1 && this.board[row][col].p1_structures.length > 0) || (!player_1 && this.board[row][col].p2_structures.length > 0)
-  }
-
-  // handleStructureSelect(cell) {
-  //   this.selectStartCell(cell);
-
-  //   const row = cell.id.split("_")[0]
-  //   const col = cell.id.split("_")[1]
-
-  //   if (this.is_player_1) {
-  //     this.buildPieceDisplayTable(cell, this.board[row][col].p1_structures, [])
-  //   } else {
-  //     this.buildPieceDisplayTable(cell, this.board[row][col].p2_structures, [])
-  //   }
-  // }
-
-  handleUnitSelect(cell) {
-    this.selectStartCell(cell);
-
-    const row = cell.id.split("_")[0]
-    const col = cell.id.split("_")[1]
-
   }
 
   selectStartCell(cell) {
@@ -435,13 +427,24 @@ class Display {
 
     const tableList = document.getElementById("table-list");
     for (const unit of [...board_cell.p1_units, ...board_cell.p2_units, ...board_cell.p1_structures, ...board_cell.p2_structures]) {
+
       const newRow = document.createElement("tr");
       const newData = document.createElement("td");
       newData.textContent = unit.type;
       const newData2 = document.createElement("td");
       newData2.textContent = unit.stats.hp;
+      const newData3 = document.createElement("td");
+      newData3.textContent = unit.stats.speed;
+      const newData4 = document.createElement("td");
+      newData4.textContent = unit.stats.range;
+      const newData5 = document.createElement("td");
+      newData5.textContent = unit.stats.damage;
+
       newRow.appendChild(newData);
       newRow.appendChild(newData2);
+      newRow.appendChild(newData3);
+      newRow.appendChild(newData4);
+      newRow.appendChild(newData5);
       tableList.appendChild(newRow);
     }
   }

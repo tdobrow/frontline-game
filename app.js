@@ -77,11 +77,16 @@ io.on('connection', function(socket) {
     }
     console.log(SUBMITTED_MOVES)
   })
+
   // When a client disconnects, clean that connection up
   socket.on('disconnect', function() {
     handleDisconnect(socket.id)
     console.log("Players: ")
     console.log(PLAYER_IDS)
+  })
+
+  socket.on('input_message', function(data) {
+    io.sockets.emit('output_message', data);
   })
 })
 

@@ -1,8 +1,5 @@
 import Display from './display.js'
 
-// var SOCKET_ID = undefined
-var PURCHASE_SELECTION_MODE = false
-
 var socket = io();
 
 var MY_MOVE = {
@@ -45,7 +42,6 @@ function ingestServerResponse(server_response) {
   display = new Display(
     server_response.game_state.board,
     IS_PLAYER_1,
-    PURCHASE_SELECTION_MODE,
     MY_MOVE,
     MY_RESOURCES
   );
@@ -67,9 +63,15 @@ window.onload = () => {
     ingestServerResponse(server_response);
   });
 
+  socket.on('output_message', (message) => {
+    const chatMessagesDiv = document.getElementById('chat-messages');
+    const messageElement = document.createElement('div');
+    messageElement.textContent = message;
+    chatMessagesDiv.appendChild(messageElement);
+  });
+
   socket.on('starting_info', (server_response) => {
   	IS_PLAYER_1 = server_response.is_player_1
-  	// SOCKET_ID = server_response.socket_id
 
   	ingestServerResponse(server_response)
   });
@@ -90,6 +92,7 @@ document.getElementById("submit_btn").onclick = () => {
 
   console.log("Submitting move")
   console.log(move_for_server)
+
   socket.emit('submit_move', move_for_server);
   document.getElementById("submit_btn").disabled = true;
   MY_MOVE = {
@@ -99,29 +102,17 @@ document.getElementById("submit_btn").onclick = () => {
   }
 }
 
-document.getElementById("purchase_submit_btn").onclick = () => {
-  if (PURCHASE_SELECTION_MODE) {
-    disablePurchaseMode();
-  } else {
-    enablePurchaseMode();
+const input = document.getElementById('message-input');
+
+input.addEventListener('keydown', function(event) {
+  if (event.keyCode === 13) {
+    event.preventDefault();
+
+    if (input.value === '') {
+      return;
+    }
+    const message = input.value;
+    socket.emit('input_message', message)
+    input.value = '';
   }
-}
-
-function disablePurchaseMode() {
-  Display.hideShop()
-  display.disablePurchaseSelectionMode()
-
-  PURCHASE_SELECTION_MODE = false
-  document.getElementById("purchase_submit_btn").classList.remove('button_selected');
-  document.getElementById("submit_btn").disabled = false;
-}
-
-function enablePurchaseMode() {
-  Display.showShop()
-  display.deselectStartCell()
-  display.enablePurchaseSelectionMode()
-
-  PURCHASE_SELECTION_MODE = true
-  document.getElementById("purchase_submit_btn").classList.add('button_selected');
-  document.getElementById("submit_btn").disabled = true;
-}
+});

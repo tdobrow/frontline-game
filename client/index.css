@@ -180,10 +180,11 @@ h3 {
   padding-left: 20px;
   padding-top: 10px;
   padding-bottom: 20px;
-  background-color: #ffffbb;
-  height: 400px;
-  margin-top:20px;
+  background-color: #ababab;
+  height: 330px;
+  margin-top: 0px;
 }
+
 .unit-list {
   margin: 20px;
   position: absolute;
@@ -208,6 +209,11 @@ th {
   background-color: #f2f2f2;
 }
 
+.unit-row, .structure-row {
+  cursor: pointer;
+  background-color: #cfcfcf;
+}
+
 .unit-row.shop_selected, .structure-row.shop_selected {
   background-color: #aaf2aa;
 }
@@ -225,4 +231,35 @@ th {
   height: 730px;
   z-index: 10; /* Make sure the SVG is above the grid */
   pointer-events: none; /* Make sure the SVG doesn't block mouse events */
+}
+
+.chatbox {
+  width: 290px;
+  max-height: 700px;
+  border: 1px solid #ccc;
+  display: flex;
+  flex-direction: column;
+  margin: 20px;
+  margin-top: 0px;
+}
+
+.chat-messages {
+  flex-grow: 1;
+  overflow-y: auto; /* For scrolling */
+  padding: 10px;
+  background-color: #afafaf;
+}
+
+.chat-input {
+  padding: 10px;
+  border-top: 1px solid #ccc;
+}
+
+#message-input {
+  width: 100%;
+  padding: 5px;
+}
+
+.chat-messages > div:nth-child(even) {
+  background-color: #f0f0f0;  /* Adjust to your preferred shade of grey */
 }
