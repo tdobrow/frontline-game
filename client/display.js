@@ -92,6 +92,20 @@ class Display {
           }
         }
 
+        function createContextMenuHandler(cell) {
+          return function(event) {
+            event.preventDefault();
+            const row = cell.id.split("_")[0];
+            const col = cell.id.split("_")[1];
+            const board_cell = this.board[row][col]
+            if (board_cell.p1_units.length > 0 || board_cell.p2_units.length > 0 || board_cell.p1_structures.length > 0 || board_cell.p2_structures.length > 0) {
+              this.buildPieceDisplayTable(cell, this.board[row][col]);
+            }
+          };
+        }
+
+        cell.addEventListener('contextmenu', createContextMenuHandler(cell, row, col).bind(this));
+
         cell.onclick = ((currentCell) => {
           return () => {
             this.handleClick(currentCell);
@@ -108,7 +122,7 @@ class Display {
     this.layerFog()
   }
 
-  hideUnitDisplayTable() {
+  hidePieceDisplayTable() {
     document.getElementById("unit-list").style.display = "none"
 
     const tableList = document.getElementById("table-list");
@@ -119,6 +133,8 @@ class Display {
   }
 
   handleClick(cell) {
+    this.hidePieceDisplayTable()
+
     if (this.purchase_selection_mode) {
       return this.handlePurchasePlacement(cell);
     }
@@ -305,18 +321,18 @@ class Display {
     return (player_1 && this.board[row][col].p1_structures.length > 0) || (!player_1 && this.board[row][col].p2_structures.length > 0)
   }
 
-  handleStructureSelect(cell) {
-    this.selectStartCell(cell);
+  // handleStructureSelect(cell) {
+  //   this.selectStartCell(cell);
 
-    const row = cell.id.split("_")[0]
-    const col = cell.id.split("_")[1]
+  //   const row = cell.id.split("_")[0]
+  //   const col = cell.id.split("_")[1]
 
-    if (this.is_player_1) {
-      this.buildPieceDisplayTable(this.board[row][col].p1_structures, [])
-    } else {
-      this.buildPieceDisplayTable(this.board[row][col].p2_structures, [])
-    }
-  }
+  //   if (this.is_player_1) {
+  //     this.buildPieceDisplayTable(cell, this.board[row][col].p1_structures, [])
+  //   } else {
+  //     this.buildPieceDisplayTable(cell, this.board[row][col].p2_structures, [])
+  //   }
+  // }
 
   handleUnitSelect(cell) {
     this.selectStartCell(cell);
@@ -324,11 +340,6 @@ class Display {
     const row = cell.id.split("_")[0]
     const col = cell.id.split("_")[1]
 
-    if (this.is_player_1) {
-      this.buildPieceDisplayTable(this.board[row][col].p1_units, this.board[row][col].p1_structures)
-    } else {
-      this.buildPieceDisplayTable(this.board[row][col].p2_units, this.board[row][col].p2_structures)
-    }
   }
 
   selectStartCell(cell) {
@@ -338,7 +349,7 @@ class Display {
 
   deselectStartCell() {
     this.selected_start_cell = undefined
-    this.hideUnitDisplayTable()
+    this.hidePieceDisplayTable()
     document.getElementById('board').childNodes.forEach(function(cell) {
       cell.classList.remove('start-selected');
     });
@@ -352,11 +363,11 @@ class Display {
       const col = node.id.split("_")[1]
       if (this.is_player_1 && this.board[row][col].p1_units.length == 0 && this.board[row][col].ownership !== 1 && !this.isAdjacent(+row, +col, 'p1_units')) {
         node.classList.add("fog");
-        document.getElementById(row + "_" + col).innerText = "";
+        document.getElementById(row + "_" + col).style.backgroundImage = "";
       }
       if (!this.is_player_1 && this.board[row][col].p2_units.length == 0 && this.board[row][col].ownership !== 2 && !this.isAdjacent(+row, +col, 'p2_units')) {
         node.classList.add("fog");
-        document.getElementById(row + "_" + col).innerText = "";
+        document.getElementById(row + "_" + col).style.backgroundImage = "";
       }
     }
     if (this.is_player_1) {
@@ -396,26 +407,34 @@ class Display {
     for (const node of childNodes) {
       const row = node.id.split("_")[0]
       const col = node.id.split("_")[1]
-      if (this.board[row][col].p1_units.length > 0) {
-        document.getElementById(row + "_" + col).innerText = this.board[row][col].p1_units[0].name
-      } else if (this.board[row][col].p2_units.length > 0) {
-        document.getElementById(row + "_" + col).innerText = this.board[row][col].p2_units[0].name
-      } else if (this.board[row][col].p1_structures.length > 0) {
-        document.getElementById(row + "_" + col).innerText = this.board[row][col].p1_structures[0].name
-      } else if (this.board[row][col].p2_structures.length > 0) {
-        document.getElementById(row + "_" + col).innerText = this.board[row][col].p2_structures[0].name
+      const cell = this.board[row][col];
+      if (cell.p1_units.length + cell.p2_units.length + cell.p1_structures.length + cell.p2_structures.length > 1) {
+        document.getElementById(row + "_" + col).style.backgroundImage = `url('/pictures/multiple.png')`;
+      } else if (cell.p1_units.length > 0) {
+        document.getElementById(row + "_" + col).style.backgroundImage = `url('/pictures/${cell.p1_units[0].type}.png')`;
+      } else if (cell.p2_units.length > 0) {
+        document.getElementById(row + "_" + col).style.backgroundImage = `url('/pictures/${cell.p2_units[0].type}.png')`;
+      } else if (cell.p1_structures.length > 0) {
+        document.getElementById(row + "_" + col).style.backgroundImage = `url('/pictures/${cell.p1_structures[0].type}.png')`;
+      } else if (cell.p2_structures.length > 0) {
+        document.getElementById(row + "_" + col).style.backgroundImage = `url('/pictures/${cell.p2_structures[0].type}.png')`;
       } else {
-        document.getElementById(row + "_" + col).innerText = ""
+        document.getElementById(row + "_" + col).style.backgroundImage = "";
       }
     }
   }
 
-  buildPieceDisplayTable(units, structures) {
-    this.hideUnitDisplayTable()
+  buildPieceDisplayTable(cell, board_cell) {
+    this.hidePieceDisplayTable()
     document.getElementById("unit-list").style.display = "block"
+    const top = cell.id.split("_")[0] * 70 + 80;
+    const left = cell.id.split("_")[1] * 70 + 50;
+
+    document.getElementById("unit-list").style.top = top + "px";
+    document.getElementById("unit-list").style.left = left + "px";
 
     const tableList = document.getElementById("table-list");
-    for (const unit of [...units, ...structures]) {
+    for (const unit of [...board_cell.p1_units, ...board_cell.p2_units, ...board_cell.p1_structures, ...board_cell.p2_structures]) {
       const newRow = document.createElement("tr");
       const newData = document.createElement("td");
       newData.textContent = unit.type;

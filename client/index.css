@@ -99,6 +99,10 @@ h3 {
   background-color: #f3ffee;
   transition: background-color 0.3s;
   position: relative;
+
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
 }
 
 .red_color {
@@ -155,6 +159,8 @@ h3 {
   margin: 0 auto;
   border-collapse: collapse;
   width: 300px;
+  font-weight: bold;
+  background-color: gray;
 }
 
 .table-list th, .table-list td {
@@ -180,6 +186,10 @@ h3 {
 }
 .unit-list {
   margin: 20px;
+  position: absolute;
+  z-index: 1000;
+  top: 200px;
+  left: 200px;
 }
 
 table {

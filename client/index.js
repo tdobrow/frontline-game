@@ -50,7 +50,7 @@ function ingestServerResponse(server_response) {
     MY_RESOURCES
   );
 
-  display.hideUnitDisplayTable()
+  display.hidePieceDisplayTable()
   display.displayBoard()
 }
 
