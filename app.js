@@ -46,9 +46,6 @@ io.on('connection', function(socket) {
     })
   }
 
-  console.log("Players: ")
-  console.log(PLAYER_IDS)
-
   // Client Object:
   // {
   //   is_player_1: ,
@@ -75,14 +72,11 @@ io.on('connection', function(socket) {
       emitMovesToPlayers()
       SUBMITTED_MOVES = {}
     }
-    console.log(SUBMITTED_MOVES)
   })
 
   // When a client disconnects, clean that connection up
   socket.on('disconnect', function() {
     handleDisconnect(socket.id)
-    console.log("Players: ")
-    console.log(PLAYER_IDS)
   })
 
   socket.on('input_message', function(data) {

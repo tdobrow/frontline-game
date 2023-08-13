@@ -1,5 +1,6 @@
 import Unit from './unit.js'
 import Structure from './structure.js'
+import ActionHandler from './actionHandler.js';
 
 class Display {
   constructor(board, is_player_1, my_moves, my_money) {
@@ -7,36 +8,65 @@ class Display {
     this.is_player_1 = is_player_1;
     this.my_money = my_money;
 
-    this.my_moves = my_moves;
-
-    this.selected_start_cell = undefined;
-    this.selected_end_cell = undefined;
-
-    this.svg_line_count = 0;
-
     this.greyOutUnaffordableItems();
     this.clearSvgLayer();
+
+    this.action_handler = new ActionHandler(board, is_player_1, my_moves, my_money);
   }
 
-  greyOutUnaffordableItems() {
-    document.querySelectorAll('.unit-row').forEach(row => row.classList.remove('greyed-out'));
-    document.querySelectorAll('.structure-row').forEach(row => row.classList.remove('greyed-out'));
+  // PUBLIC
 
-    const tooExpensiveUnits = Object.entries(Unit.statsMapping)
-      .filter(([_, value]) => value.cost > this.my_money)
-      .map(([key, _]) => key);
-    for (const unit of tooExpensiveUnits) {
-      document.getElementById(unit).classList.add('greyed-out');
-    }
+  displayBoard() {
+    Display.hidePieceDisplayTable()
 
-    const tooExpensiveStructures = Object.entries(Structure.statsMapping)
-      .filter(([_, value]) => value.cost > this.my_money)
-      .map(([key, _]) => key);
-    console.log(tooExpensiveStructures)
-    for (const structure of tooExpensiveStructures) {
-      document.getElementById(structure).classList.add('greyed-out');
+    const container = document.getElementById("board")
+    while (document.getElementById('board').childNodes.length > 0) {
+      document.getElementById('board').childNodes[0].remove()
     }
+    for (var row = 0; row < this.board.length; row++) {
+      for (var col = 0; col < this.board[row].length; col++) {
+        var cell = document.createElement("div")
+        cell.id = row + "_" + col
+        cell.classList.add('tile');
+
+        if (this.board[row][col].ownership > 0) {
+          if ((this.is_player_1 && this.board[row][col].ownership == 1) || (!this.is_player_1 && this.board[row][col].ownership == 2)) {
+            cell.classList.add('friendly_controlled');
+          }
+          if ((this.is_player_1 && this.board[row][col].ownership == 2) || (!this.is_player_1 && this.board[row][col].ownership == 1)) {
+            cell.classList.add('enemy_controlled');
+          }
+        }
+
+        // Right click handler
+        function createContextMenuHandler(cell) {
+          return function(event) {
+            event.preventDefault();
+            const row = cell.id.split("_")[0];
+            const col = cell.id.split("_")[1];
+            const board_cell = this.board[row][col]
+            if (board_cell.p1_units.length > 0 || board_cell.p2_units.length > 0 || board_cell.p1_structures.length > 0 || board_cell.p2_structures.length > 0) {
+              this.buildPieceDisplayTable(cell, this.board[row][col]);
+            }
+          };
+        }
+        cell.addEventListener('contextmenu', createContextMenuHandler(cell, row, col).bind(this));
+
+        // Left click handler
+        cell.onclick = ((currentCell) => {
+          return () => {
+            this.action_handler.handleClick(currentCell);
+          };
+        })(cell);
+
+        container.appendChild(cell)
+      }
+    }
+    this.layerUnitsAndStructures()
+    this.layerFog()
   }
+
+  // STATIC
 
   static setupShop() {
     const unitRows = document.querySelectorAll('.unit-row');
@@ -57,57 +87,7 @@ class Display {
     structureRows.forEach(row => row.addEventListener('click', handleRowClick));
   }
 
-  displayBoard() {
-    const container = document.getElementById("board")
-    while (document.getElementById('board').childNodes.length > 0) {
-      document.getElementById('board').childNodes[0].remove()
-    }
-    for (var row = 0; row < this.board.length; row++) {
-      for (var col = 0; col < this.board[row].length; col++) {
-        var cell = document.createElement("div")
-        cell.id = row + "_" + col
-        cell.classList.add('tile');
-
-        if (this.board[row][col].ownership > 0) {
-          if ((this.is_player_1 && this.board[row][col].ownership == 1) || (!this.is_player_1 && this.board[row][col].ownership == 2)) {
-            cell.classList.add('friendly_controlled');
-          }
-          if ((this.is_player_1 && this.board[row][col].ownership == 2) || (!this.is_player_1 && this.board[row][col].ownership == 1)) {
-            cell.classList.add('enemy_controlled');
-          }
-        }
-
-        function createContextMenuHandler(cell) {
-          return function(event) {
-            event.preventDefault();
-            const row = cell.id.split("_")[0];
-            const col = cell.id.split("_")[1];
-            const board_cell = this.board[row][col]
-            if (board_cell.p1_units.length > 0 || board_cell.p2_units.length > 0 || board_cell.p1_structures.length > 0 || board_cell.p2_structures.length > 0) {
-              this.buildPieceDisplayTable(cell, this.board[row][col]);
-            }
-          };
-        }
-
-        cell.addEventListener('contextmenu', createContextMenuHandler(cell, row, col).bind(this));
-
-        cell.onclick = ((currentCell) => {
-          return () => {
-            this.handleClick(currentCell);
-            console.log("MOVES")
-            console.log(this.my_moves)
-
-          };
-        })(cell);
-
-        container.appendChild(cell)
-      }
-    }
-    this.layerUnitsAndStructures()
-    this.layerFog()
-  }
-
-  hidePieceDisplayTable() {
+  static hidePieceDisplayTable() {
     document.getElementById("unit-list").style.display = "none"
 
     const tableList = document.getElementById("table-list");
@@ -117,7 +97,7 @@ class Display {
     });
   }
 
-  unitShopRowSelected() {
+  static unitShopRowSelected() {
     const unitRows = document.querySelectorAll('.unit-row');
 
     let selected = false;
@@ -130,7 +110,7 @@ class Display {
     return selected;
   }
 
-  structureShopRowSelected() {
+  static structureShopRowSelected() {
     const structureRows = document.querySelectorAll('.structure-row');
 
     let selected = false;
@@ -143,208 +123,59 @@ class Display {
     return selected;
   }
 
-  placePiece(cell) {
-    this.my_moves.placements.push({
-      start_cell_id: cell.id,
-      type: document.querySelector('.shop_selected').id
-    })
-    document.getElementById("my_money").innerHTML = "$" + this.my_money
+  static drawArrowBetweenCells(ay, ax, by, bx, action) {
+    const arrowLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    arrowLine.setAttribute('id', `arrow-line-${ay}_${ax}`);
+    const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    dot.setAttribute('id', `dot-${ay}_${ax}`);
 
-    cell.classList.add('purchase-selected');
+    // values are percentages
+    const cellXCenterX = (ax * 10 + 5);
+    const cellXCenterY = (ay * 10 + 5);
+    const cellYCenterX = (bx * 10 + 5);
+    const cellYCenterY = (by * 10 + 5);
 
-    document.querySelectorAll('.unit-row').forEach(row => row.classList.remove('shop_selected'));
-    document.querySelectorAll('.structure-row').forEach(row => row.classList.remove('shop_selected'));
-  }
+    arrowLine.setAttribute('x1', cellXCenterX);
+    arrowLine.setAttribute('y1', cellXCenterY);
+    arrowLine.setAttribute('x2', cellYCenterX);
+    arrowLine.setAttribute('y2', cellYCenterY);
 
-  handleClick(cell) {
-    this.hidePieceDisplayTable()
+    dot.setAttribute('cx', cellYCenterX);
+    dot.setAttribute('cy', cellYCenterY);
+    dot.setAttribute('r', 1);
 
-    if (this.unitShopRowSelected()) {
-      const row = cell.id.split("_")[0];
-      const col = cell.id.split("_")[1];
-      const board_cell = this.board[row][col];
-      if (
-        (this.is_player_1 && (board_cell.p1_structures.length > 0 && board_cell.p1_structures[0].type == 'Barracks')) ||
-        (!this.is_player_1 && (board_cell.p2_structures.length > 0 && board_cell.p2_structures[0].type == 'Barracks'))
-      ) {
-        this.placePiece(cell);
-        this.my_money -= Unit.statsMapping[document.querySelector('.shop_selected').id].cost;
-
-        return;
-      } else {
-        return;
-      }
+    if (action == 'movement') {
+      arrowLine.setAttribute('stroke', 'green');
+      dot.setAttribute('stroke', 'green');
     }
-    if (this.structureShopRowSelected()) {
-      const row = cell.id.split("_")[0];
-      const col = cell.id.split("_")[1];
-      const board_cell = this.board[row][col];
-
-      if (
-        (this.is_player_1 && board_cell.ownership == 1 && board_cell.p1_structures.length == 0) ||
-        (!this.is_player_1 && board_cell.ownership == 2 && board_cell.p2_structures.length == 0)
-      ) {
-        this.my_moves.placements.push({
-          start_cell_id: cell.id,
-          type: document.querySelector('.shop_selected').id
-        })
-        this.placePiece(cell);
-        this.my_money -= Structure.statsMapping[document.querySelector('.shop_selected').id].cost;
-
-        return;
-      } else {
-        return;
-      }
+    if (action == 'attack') {
+      arrowLine.setAttribute('stroke', 'red');
+      dot.setAttribute('stroke', 'red');
     }
 
-    if (this.handleSvgClear(cell)) {
-      return;
+    document.getElementById('arrow-svg').appendChild(arrowLine);
+    document.getElementById('arrow-svg').appendChild(dot);
+  }
+
+  // PRIVATE
+
+  greyOutUnaffordableItems() {
+    document.querySelectorAll('.unit-row').forEach(row => row.classList.remove('greyed-out'));
+    document.querySelectorAll('.structure-row').forEach(row => row.classList.remove('greyed-out'));
+
+    const tooExpensiveUnits = Object.entries(Unit.statsMapping)
+      .filter(([_, value]) => value.cost > this.my_money)
+      .map(([key, _]) => key);
+    for (const unit of tooExpensiveUnits) {
+      document.getElementById(unit).classList.add('greyed-out');
     }
 
-    if (this.selected_start_cell === undefined) {
-      return this.handleSelectClick(cell)
+    const tooExpensiveStructures = Object.entries(Structure.statsMapping)
+      .filter(([_, value]) => value.cost > this.my_money)
+      .map(([key, _]) => key);
+    for (const structure of tooExpensiveStructures) {
+      document.getElementById(structure).classList.add('greyed-out');
     }
-    if (this.selected_start_cell === cell) {
-      return this.deselectStartCell()
-    }
-
-    this.handleDestinationClick(cell)
-  }
-
-  handleSvgClear(cell) {
-    let svg_clear = false;
-    for (let i=0; i < this.my_moves.movements.length; i++) {
-      let movement = this.my_moves.movements[i];
-      if (movement.start_cell_id == cell.id) {
-        this.deselectStartCell();
-        svg_clear = true;
-
-        var parentElement = document.getElementById('arrow-svg');
-
-        var childElement1 = document.getElementById(`dot-${cell.id}`);
-        var childElement2 = document.getElementById(`arrow-line-${cell.id}`);
-        parentElement.removeChild(childElement1);
-        parentElement.removeChild(childElement2);
-        this.my_moves.movements.splice(i, 1);
-      }
-    }
-    for (let i=0; i < this.my_moves.attacks.length; i++) {
-      let attack = this.my_moves.attacks[i];
-      if (attack.start_cell_id == cell.id) {
-        this.deselectStartCell();
-        svg_clear = true;
-
-        var parentElement = document.getElementById('arrow-svg');
-
-        var childElement1 = document.getElementById(`dot-${cell.id}`);
-        var childElement2 = document.getElementById(`arrow-line-${cell.id}`);
-        parentElement.removeChild(childElement1);
-        parentElement.removeChild(childElement2);
-        this.my_moves.attack.splice(i, 1);
-      }
-    }
-    return svg_clear;
-  }
-
-  handleSelectClick(cell) {
-    if (this.unitExistsOnTile(cell, this.is_player_1)) {
-      this.selectStartCell(cell);
-    }
-  }
-
-  handleDestinationClick(cell) {
-    this.selected_end_cell = cell
-
-    // if enemies on this cell
-    if (this.unitExistsOnTile(cell, !this.is_player_1)) {
-      if (this.validAttackDestination(this.selected_start_cell, cell, this.is_player_1)) {
-        this.handleAttackDestinationClick(cell);
-      }
-    } else {
-      if (this.validMoveDestination(this.selected_start_cell, cell, this.is_player_1)) {
-        this.handleMovementDestinationClick(cell);
-      }
-    }
-
-    this.deselectStartCell();
-    this.selected_start_cell = undefined;
-    this.selected_end_cell = undefined;
-  }
-
-  handleAttackDestinationClick(cell) {
-    this.my_moves.attacks.push({
-      start_cell_id: this.selected_start_cell.id,
-      end_cell_id: cell.id
-    })
-    this.drawArrowBetweenCells(
-      this.selected_start_cell.id.split('_')[0],
-      this.selected_start_cell.id.split('_')[1],
-      this.selected_end_cell.id.split('_')[0],
-      this.selected_end_cell.id.split('_')[1],
-      'attack'
-    );
-  }
-
-  handleMovementDestinationClick(cell) {
-    this.my_moves.movements.push({
-      start_cell_id: this.selected_start_cell.id,
-      end_cell_id: cell.id
-    })
-    this.drawArrowBetweenCells(
-      this.selected_start_cell.id.split('_')[0],
-      this.selected_start_cell.id.split('_')[1],
-      this.selected_end_cell.id.split('_')[0],
-      this.selected_end_cell.id.split('_')[1],
-      'movement'
-    );
-  }
-
-  validAttackDestination(start_cell, end_cell, player_1) {
-    const start_row = start_cell.id.split("_")[0]
-    const start_col = start_cell.id.split("_")[1]
-    const end_row = end_cell.id.split("_")[0]
-    const end_col = end_cell.id.split("_")[1]
-    const distance = Math.abs(start_row - end_row) + Math.abs(start_col - end_col)
-
-    // TODO: check for Artillery? Check for towers that give range?
-    return distance <= 2
-  }
-
-  validMoveDestination(start_cell, end_cell, player_1) {
-    const start_row = start_cell.id.split("_")[0]
-    const start_col = start_cell.id.split("_")[1]
-    const end_row = end_cell.id.split("_")[0]
-    const end_col = end_cell.id.split("_")[1]
-
-    const units = player_1 ? this.board[start_row][start_col].p1_units : this.board[start_row][start_col].p2_units
-    const distance = Math.abs(start_row - end_row) + Math.abs(start_col - end_col)
-
-    for (let unit of units) {
-      if (unit.stats.speed < distance) {
-        return false
-      }
-    }
-    return true;
-  }
-
-  unitExistsOnTile(cell, player_1) {
-    const row = cell.id.split("_")[0]
-    const col = cell.id.split("_")[1]
-
-    return (player_1 && this.board[row][col].p1_units.length > 0) || (!player_1 && this.board[row][col].p2_units.length > 0)
-  }
-
-  selectStartCell(cell) {
-    this.selected_start_cell = cell
-    cell.classList.add('start-selected')
-  }
-
-  deselectStartCell() {
-    this.selected_start_cell = undefined
-    this.hidePieceDisplayTable()
-    document.getElementById('board').childNodes.forEach(function(cell) {
-      cell.classList.remove('start-selected');
-    });
   }
 
   layerFog() {
@@ -353,11 +184,11 @@ class Display {
     for (const node of childNodes) {
       const row = node.id.split("_")[0]
       const col = node.id.split("_")[1]
-      if (this.is_player_1 && this.board[row][col].p1_units.length == 0 && this.board[row][col].ownership !== 1 && !this.isAdjacent(+row, +col, 'p1_units')) {
+      if (this.is_player_1 && this.board[row][col].p1_units.length == 0 && this.board[row][col].ownership !== 1 && !this.is2Adjacent(+row, +col, 'p1_units')) {
         node.classList.add("fog");
         document.getElementById(row + "_" + col).style.backgroundImage = "";
       }
-      if (!this.is_player_1 && this.board[row][col].p2_units.length == 0 && this.board[row][col].ownership !== 2 && !this.isAdjacent(+row, +col, 'p2_units')) {
+      if (!this.is_player_1 && this.board[row][col].p2_units.length == 0 && this.board[row][col].ownership !== 2 && !this.is2Adjacent(+row, +col, 'p2_units')) {
         node.classList.add("fog");
         document.getElementById(row + "_" + col).style.backgroundImage = "";
       }
@@ -417,7 +248,8 @@ class Display {
   }
 
   buildPieceDisplayTable(cell, board_cell) {
-    this.hidePieceDisplayTable()
+    Display.hidePieceDisplayTable()
+
     document.getElementById("unit-list").style.display = "block"
     const top = cell.id.split("_")[0] * 70 + 80;
     const left = cell.id.split("_")[1] * 70 + 50;
@@ -453,42 +285,6 @@ class Display {
     while (document.getElementById('arrow-svg').childNodes.length > 0) {
       document.getElementById('arrow-svg').childNodes[0].remove()
     }
-    this.svg_line_count = 0;
-  }
-
-  drawArrowBetweenCells(ay, ax, by, bx, action) {
-    const arrowLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    arrowLine.setAttribute('id', `arrow-line-${ay}_${ax}`);
-    const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    dot.setAttribute('id', `dot-${ay}_${ax}`);
-
-    // values are percentages
-    const cellXCenterX = (ax * 10 + 5);
-    const cellXCenterY = (ay * 10 + 5);
-    const cellYCenterX = (bx * 10 + 5);
-    const cellYCenterY = (by * 10 + 5);
-
-    arrowLine.setAttribute('x1', cellXCenterX);
-    arrowLine.setAttribute('y1', cellXCenterY);
-    arrowLine.setAttribute('x2', cellYCenterX);
-    arrowLine.setAttribute('y2', cellYCenterY);
-
-    dot.setAttribute('cx', cellYCenterX);
-    dot.setAttribute('cy', cellYCenterY);
-    dot.setAttribute('r', 1);
-
-    if (action == 'movement') {
-      arrowLine.setAttribute('stroke', 'green');
-      dot.setAttribute('stroke', 'green');
-    }
-    if (action == 'attack') {
-      arrowLine.setAttribute('stroke', 'red');
-      dot.setAttribute('stroke', 'red');
-    }
-    this.svg_line_count += 1;
-
-    document.getElementById('arrow-svg').appendChild(arrowLine);
-    document.getElementById('arrow-svg').appendChild(dot);
   }
 
   isAdjacent(i, j, units_key) {
@@ -518,6 +314,26 @@ class Display {
     }
     return false
   }
+
+  is2Adjacent(i, j, units_key) {
+    // Positions within 2 squares in each direction, including diagonals
+    const offsets = [
+        [-2, 0], [-1, -1], [0, -2], [1, -1], [2, 0],
+        [1, 1], [0, 2], [-1, 1], [-2, -1], [-2, 1],
+        [-1, -2], [1, -2], [2, -1], [2, 1], [-1, 2], [1, 2]
+    ];
+
+    for (const [xOffset, yOffset] of offsets) {
+        const newX = i + xOffset;
+        const newY = j + yOffset;
+
+        if (newX >= 0 && newX <= 9 && newY >= 0 && newY <= 9 && this.board[newX][newY][units_key].length > 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
 }
 
 export default Display;

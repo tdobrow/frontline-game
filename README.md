@@ -5,7 +5,7 @@ todo: write
 
 BUGS:
 - a moves to b , b moves to c moves all of them. Unit moves need to be handled one at a time
-- purchase shit so awkward
+
 
 FIGURE OUT:
 when I run into ssh issue I need to:
@@ -17,8 +17,7 @@ TODO:
 Combine unit and structure configs between frontend and backend without using some webpack shit
 
 
-chat
+make board bigger and adjust starting stuff?
+
 
 event history
-
-fix flex box with svg layering

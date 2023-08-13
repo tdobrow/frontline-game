@@ -46,7 +46,6 @@ function ingestServerResponse(server_response) {
     MY_RESOURCES
   );
 
-  display.hidePieceDisplayTable()
   display.displayBoard()
 }
 
@@ -89,9 +88,6 @@ document.getElementById("submit_btn").onclick = () => {
     attacks: MY_MOVE.attacks,
     placements: MY_MOVE.placements,
   }
-
-  console.log("Submitting move")
-  console.log(move_for_server)
 
   socket.emit('submit_move', move_for_server);
   document.getElementById("submit_btn").disabled = true;
