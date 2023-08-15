@@ -30,6 +30,8 @@ class ActionHandler {
         this.my_money -= Unit.statsMapping[document.querySelector('.shop_selected').id].cost;
         this.placePiece(cell);
 
+        Display.greyOutUnaffordableItems(this.my_money);
+
         return;
       } else {
         return;
@@ -47,6 +49,8 @@ class ActionHandler {
       ) {
         this.my_money -= Structure.statsMapping[document.querySelector('.shop_selected').id].cost;
         this.placePiece(cell);
+
+        Display.greyOutUnaffordableItems(this.my_money)
 
         return;
       } else {
@@ -101,8 +105,8 @@ class ActionHandler {
   handleDestinationClick(cell) {
     this.selected_end_cell = cell
 
-    // if enemies on this cell
-    if (this.unitExistsOnTile(cell, !this.is_player_1)) {
+    const destination_cell = document.getElementById(cell.id);
+    if (!destination_cell.classList.contains('fog') && this.pieceExistsOnTile(cell, !this.is_player_1)) {
       if (this.validAttackDestination(this.selected_start_cell, cell, this.is_player_1)) {
         this.handleAttackDestinationClick(cell);
       }
@@ -180,7 +184,17 @@ class ActionHandler {
     const row = cell.id.split("_")[0]
     const col = cell.id.split("_")[1]
 
-    return (player_1 && this.board[row][col].p1_units.length > 0) || (!player_1 && this.board[row][col].p2_units.length > 0)
+    return player_1 && this.board[row][col].p1_units.length > 0 || !player_1 && this.board[row][col].p2_units.length > 0
+  }
+
+  pieceExistsOnTile(cell, player_1) {
+    const row = cell.id.split("_")[0]
+    const col = cell.id.split("_")[1]
+
+    return (
+      player_1 && (this.board[row][col].p1_units.length > 0 || this.board[row][col].p1_structures.length > 0)
+      || (!player_1 && (this.board[row][col].p2_units.length > 0 || this.board[row][col].p2_structures.length > 0))
+    )
   }
 
   selectStartCell(cell) {

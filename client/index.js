@@ -105,8 +105,18 @@ document.getElementById("submit_btn").onclick = () => {
   }
 }
 
-const input = document.getElementById('message-input');
+// handle submit button click
+document.getElementById("reset_btn").onclick = () => {
+  socket.emit('reset', IS_PLAYER_1)
 
+  MY_MOVE = {
+    'movements': [],
+    'attacks': [],
+    'placements': [],
+  }
+}
+
+const input = document.getElementById('message-input');
 input.addEventListener('keydown', function(event) {
   if (event.keyCode === 13) {
     event.preventDefault();

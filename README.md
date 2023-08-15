@@ -19,6 +19,9 @@ Combine unit and structure configs between frontend and backend without using so
 
 make board bigger and adjust starting stuff?
 
+currently can only click on grid to remove popup
 
 
 socket issue if second player reconnects first
+
+handle building FOW and ownership

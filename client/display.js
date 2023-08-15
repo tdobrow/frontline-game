@@ -8,7 +8,7 @@ class Display {
     this.is_player_1 = is_player_1;
     this.my_money = my_money;
 
-    this.greyOutUnaffordableItems();
+    Display.greyOutUnaffordableItems(this.my_money);
     this.clearSvgLayer();
 
     this.action_handler = new ActionHandler(board, is_player_1, my_moves, my_money);
@@ -163,26 +163,26 @@ class Display {
     document.getElementById('arrow-svg').appendChild(dot);
   }
 
-  // PRIVATE
-
-  greyOutUnaffordableItems() {
+  static greyOutUnaffordableItems(my_money) {
     document.querySelectorAll('.unit-row').forEach(row => row.classList.remove('greyed-out'));
     document.querySelectorAll('.structure-row').forEach(row => row.classList.remove('greyed-out'));
 
     const tooExpensiveUnits = Object.entries(Unit.statsMapping)
-      .filter(([_, value]) => value.cost > this.my_money)
+      .filter(([_, value]) => value.cost > my_money)
       .map(([key, _]) => key);
     for (const unit of tooExpensiveUnits) {
       document.getElementById(unit).classList.add('greyed-out');
     }
 
     const tooExpensiveStructures = Object.entries(Structure.statsMapping)
-      .filter(([_, value]) => value.cost > this.my_money)
+      .filter(([_, value]) => value.cost > my_money)
       .map(([key, _]) => key);
     for (const structure of tooExpensiveStructures) {
       document.getElementById(structure).classList.add('greyed-out');
     }
   }
+
+  // PRIVATE
 
   layerFog() {
     const childNodes = document.getElementById("board").childNodes;

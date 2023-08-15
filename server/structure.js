@@ -5,10 +5,16 @@ class Structure {
     // Wall:        { hp: 10, cost: 30 },
   };
 
+  getDead() {
+    this.isDead = true;
+  }
+
   constructor(type, player, row, col) {
     if (!Structure.statsMapping[type]) {
       throw new Error(`Invalid structure type: ${type}`);
     }
+
+    this.isDead = false;
 
     this.type = type;
     this.player = player;

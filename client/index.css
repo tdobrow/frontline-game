@@ -76,7 +76,17 @@ p {
   font-weight: bold;
 }
 
-#button_div {
+#reset_btn {
+  font-size: 14px;
+  height: 100%;
+  width: 100%;
+  cursor: pointer;
+  border-radius: 4px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+  font-weight: bold;
+}
+
+#button_div, #reset_button_div {
   width: 150px;
   height: 50px;
   margin: 20px;

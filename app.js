@@ -81,6 +81,19 @@ io.on('connection', function(socket) {
   socket.on('input_message', function(data) {
     io.sockets.emit('output_message', { message: data, player_1: socket.id == PLAYER_IDS[0].socket_id });
   })
+
+  socket.on('reset', function(is_player_1) {
+    if (is_player_1) {
+      SUBMITTED_MOVES['p1'] = undefined;
+    } else {
+      SUBMITTED_MOVES['p2'] = undefined;
+    }
+
+    socket.emit('server_response', {
+      'game_state': GAME_STATE
+    })
+  })
+
 })
 
 // Starta a client by going to localhost:8080 in a browser
@@ -159,7 +172,10 @@ function processUnitAttacks() {
 function processMelee() {
   for (var i=0; i<GAME_STATE.board.length; i++) {
     for( var j=0; j<GAME_STATE.board.length; j++) {
-      while (GAME_STATE.board[i][j].p1_units.length > 0 && GAME_STATE.board[i][j].p2_units.length > 0) {
+      while (
+        (GAME_STATE.board[i][j].p1_units.length > 0 || GAME_STATE.board[i][j].p1_structures.length > 0) &&
+        (GAME_STATE.board[i][j].p2_units.length > 0 || GAME_STATE.board[i][j].p2_structures.length > 0)
+      ) {
         attackUnits(i + "_" + j, i + "_" + j, 'p1_units')
         attackUnits(i + "_" + j, i + "_" + j, 'p2_units')
 
@@ -177,9 +193,9 @@ function setOwnership() {
   // If it is owner, AND there is an enemy adjacent, AND there is not friendly adjacent, then it becomes neutral
   for (var i=0; i<GAME_STATE.board.length; i++) {
     for(var j=0; j<GAME_STATE.board.length; j++) {
-      if (GAME_STATE.board[i][j].p1_units.length > 0) {
+      if (GAME_STATE.board[i][j].p1_units.length > 0 || GAME_STATE.board[i][j].p1_structures.length > 0) {
         GAME_STATE.board[i][j].ownership = 1
-      } else if (GAME_STATE.board[i][j].p2_units.length > 0) {
+      } else if (GAME_STATE.board[i][j].p2_units.length > 0 || GAME_STATE.board[i][j].p2_structures.length > 0) {
         GAME_STATE.board[i][j].ownership = 2
       } else { // No units
         const p1_adjascent = isAdjacent(i, j, 'p1_units')
@@ -304,18 +320,28 @@ function moveUnits(start_cell_id, end_cell_id, player_unit_key) {
 function attackUnits(start_cell_id, end_cell_id, player_unit_key) {
   attack_damage = 0
   enemy_unit_key = player_unit_key == 'p1_units' ? 'p2_units' : 'p1_units'
+  enemy_structure_key = player_unit_key == 'p1_units' ? 'p2_structures' : 'p1_structures'
+
   updated_enemy_units = updated_enemy_units_mid_combat(end_cell_id, enemy_unit_key);
+  updated_enemy_structures = updated_enemy_units_mid_combat(end_cell_id, enemy_structure_key);
+  enemy_pieces = [...updated_enemy_units, ...updated_enemy_structures]
 
   GAME_STATE.board[start_cell_id.split('_')[0]][start_cell_id.split('_')[1]][player_unit_key].map(function(unit) {
     attack_damage += unit.stats.damage
   })
 
-  while(attack_damage > 0 && updated_enemy_units.length > 0 ) {
-    updated_enemy_units[0].stats.hp -= 1
-    if (updated_enemy_units[0].stats.hp <= 0) {
-      updated_enemy_units[0].getDead()
+  while(attack_damage > 0 && enemy_pieces.length > 0 ) {
+    enemy_pieces[0].stats.hp -= 1
+    if (enemy_pieces[0].stats.hp <= 0) {
+      console.log(enemy_pieces)
+      console.log(enemy_pieces[0])
+      enemy_pieces[0].getDead()
     }
+
     updated_enemy_units = updated_enemy_units_mid_combat(end_cell_id, enemy_unit_key);
+    updated_enemy_structures = updated_enemy_units_mid_combat(end_cell_id, enemy_structure_key);
+    enemy_pieces = [...updated_enemy_units, ...updated_enemy_structures];
+
     attack_damage -= 1
   }
 }
@@ -337,6 +363,8 @@ function cleanupDeadUnits() {
     for (let col=0; col<10; col++) {
       GAME_STATE.board[row][col].p1_units = GAME_STATE.board[row][col].p1_units.filter((unit) => !unit.isDead)
       GAME_STATE.board[row][col].p2_units = GAME_STATE.board[row][col].p2_units.filter((unit) => !unit.isDead)
+      GAME_STATE.board[row][col].p1_structures = GAME_STATE.board[row][col].p1_structures.filter((unit) => !unit.isDead)
+      GAME_STATE.board[row][col].p2_structures = GAME_STATE.board[row][col].p2_structures.filter((unit) => !unit.isDead)
     }
   }
 }
