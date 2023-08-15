@@ -84,7 +84,7 @@ class ActionHandler {
       start_cell_id: cell.id,
       type: document.querySelector('.shop_selected').id
     })
-    document.getElementById("my_money").innerHTML = "$" + this.my_money
+    document.getElementById("my_money").innerHTML = "Money: $" + this.my_money
 
     cell.classList.add('purchase-selected');
 
@@ -152,8 +152,11 @@ class ActionHandler {
     const end_col = end_cell.id.split("_")[1]
     const distance = Math.abs(start_row - end_row) + Math.abs(start_col - end_col)
 
-    // TODO: check for Artillery? Check for towers that give range?
-    return distance <= 2
+    const units = player_1 ? this.board[start_row][start_col].p1_units : this.board[start_row][start_col].p2_units
+
+    units.sort((a, b) => a.stats.range - b.stats.range) // sort ascending by range
+
+    return distance <= units[0].stats.range
   }
 
   validMoveDestination(start_cell, end_cell, player_1) {

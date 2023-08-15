@@ -36,11 +36,16 @@ const Structure = require('./structure');
       }
       board.push(new_row)
     }
-    board[1][3].p1_units.push(new Unit('Infantry', 1, 1, 3))
-    board[3][1].p1_units.push(new Unit('Infantry', 1, 3, 1))
+    board[2][3].ownership = 1
+    board[3][2].ownership = 1
+    board[6][7].ownership = 2
+    board[7][6].ownership = 2
 
-    board[8][6].p2_units.push(new Unit('Infantry', 2, 8, 6))
-    board[6][8].p2_units.push(new Unit('Infantry', 2, 6, 8))
+    board[1][2].p1_units.push(new Unit('Infantry', 1, 1, 2))
+    board[2][1].p1_units.push(new Unit('Infantry', 1, 2, 1))
+
+    board[8][7].p2_units.push(new Unit('Infantry', 2, 8, 7))
+    board[7][8].p2_units.push(new Unit('Infantry', 2, 7, 8))
 
     board[1][1].p1_structures.push(new Structure('Barracks', 1, 1, 1))
 

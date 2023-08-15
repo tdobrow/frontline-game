@@ -335,18 +335,8 @@ function updated_enemy_units_mid_combat(end_cell_id, enemy_unit_key) {
 function cleanupDeadUnits() {
   for (let row=0; row<10; row++) {
     for (let col=0; col<10; col++) {
-      for (let unit of GAME_STATE.board[row][col].p1_units) {
-        if (unit.isDead) {
-          console.log("Unit killed: " + unit)
-          GAME_STATE.board[row][col].p1_units.splice(GAME_STATE.board[row][col].p1_units.indexOf(unit), 1)
-        }
-      }
-      for (let unit of GAME_STATE.board[row][col].p2_units) {
-        if (unit.isDead) {
-          console.log("Unit killed: " + unit)
-          GAME_STATE.board[row][col].p2_units.splice(GAME_STATE.board[row][col].p2_units.indexOf(unit), 1)
-        }
-      }
+      GAME_STATE.board[row][col].p1_units = GAME_STATE.board[row][col].p1_units.filter((unit) => !unit.isDead)
+      GAME_STATE.board[row][col].p2_units = GAME_STATE.board[row][col].p2_units.filter((unit) => !unit.isDead)
     }
   }
 }

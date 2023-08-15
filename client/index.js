@@ -30,14 +30,16 @@ function ingestServerResponse(server_response) {
   console.log(server_response)
 
   document.title = "Your Turn"
-  document.getElementById("submit_btn").disabled = false;
+  document.getElementById("submit_btn").style.backgroundColor = '#4681f4';
+  document.getElementById("submit_btn").style.color = 'white';
+
 
   if (IS_PLAYER_1) {
     MY_RESOURCES = server_response.game_state.p1_resources
   } else {
     MY_RESOURCES = server_response.game_state.p2_resources
   }
-  document.getElementById("my_money").innerHTML = "$" + MY_RESOURCES
+  document.getElementById("my_money").innerHTML = "Money: $" + MY_RESOURCES
 
   display = new Display(
     server_response.game_state.board,
@@ -93,7 +95,9 @@ document.getElementById("submit_btn").onclick = () => {
   console.log("Submitting move to server")
   console.log(move_for_server)
   socket.emit('submit_move', move_for_server);
-  document.getElementById("submit_btn").disabled = true;
+  document.getElementById("submit_btn").style.backgroundColor = '#96bbe1db';
+  document.getElementById("submit_btn").style.color = 'grey';
+
   MY_MOVE = {
     'movements': [],
     'attacks': [],
