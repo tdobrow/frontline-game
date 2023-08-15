@@ -58,16 +58,15 @@ io.on('connection', function(socket) {
     } else {
       SUBMITTED_MOVES['p2'] = client_object;
     }
-    console.log(SUBMITTED_MOVES)
+    console.log("Moves" + SUBMITTED_MOVES)
 
     if (SUBMITTED_MOVES['p1'] && SUBMITTED_MOVES['p2']) {
+      computeIncome()
 
       processUnitAttacks()
       processUnitMovements()
       processPurchases()
       processMelee()
-
-      computeIncome()
 
       emitMovesToPlayers()
       SUBMITTED_MOVES = {}
@@ -80,7 +79,7 @@ io.on('connection', function(socket) {
   })
 
   socket.on('input_message', function(data) {
-    io.sockets.emit('output_message', data);
+    io.sockets.emit('output_message', { message: data, player_1: socket.id == PLAYER_IDS[0].socket_id });
   })
 })
 
@@ -129,12 +128,18 @@ function emitMovesToPlayers() {
 
 // Move Processing Code
 
-// TODO: validate move
 function processUnitMovements() {
-  for (const move of SUBMITTED_MOVES.p1.movements) {
+  for (const move of SUBMITTED_MOVES.p1.movements.sort((a, b) => {
+    if (a.start == b.end) return -1;
+    return 1;
+  })) {
     moveUnits(move.start_cell_id, move.end_cell_id, 'p1_units')
   }
-  for (const move of SUBMITTED_MOVES.p2.movements) {
+
+  for (const move of SUBMITTED_MOVES.p2.movements.sort((a, b) => {
+    if (a.start == b.end) return -1;
+    return 1;
+  })) {
     moveUnits(move.start_cell_id, move.end_cell_id, 'p2_units')
   }
 
@@ -154,14 +159,15 @@ function processUnitAttacks() {
 function processMelee() {
   for (var i=0; i<GAME_STATE.board.length; i++) {
     for( var j=0; j<GAME_STATE.board.length; j++) {
-      if (GAME_STATE.board[i][j].p1_units.length > 0 && GAME_STATE.board[i][j].p2_units.length > 0) {
+      while (GAME_STATE.board[i][j].p1_units.length > 0 && GAME_STATE.board[i][j].p2_units.length > 0) {
         attackUnits(i + "_" + j, i + "_" + j, 'p1_units')
         attackUnits(i + "_" + j, i + "_" + j, 'p2_units')
+
+        cleanupDeadUnits()
       }
     }
   }
 
-  cleanupDeadUnits()
   setOwnership()
 }
 
@@ -298,21 +304,32 @@ function moveUnits(start_cell_id, end_cell_id, player_unit_key) {
 function attackUnits(start_cell_id, end_cell_id, player_unit_key) {
   attack_damage = 0
   enemy_unit_key = player_unit_key == 'p1_units' ? 'p2_units' : 'p1_units'
-  updated_enemy_units = GAME_STATE.board[end_cell_id.split('_')[0]][end_cell_id.split('_')[1]][enemy_unit_key]
+  updated_enemy_units = updated_enemy_units_mid_combat(end_cell_id, enemy_unit_key);
 
   GAME_STATE.board[start_cell_id.split('_')[0]][start_cell_id.split('_')[1]][player_unit_key].map(function(unit) {
     attack_damage += unit.stats.damage
   })
 
-  unit_attacked_index = 0
-  while(attack_damage > 0 && updated_enemy_units.length > 0 && unit_attacked_index < updated_enemy_units.length) {
-    updated_enemy_units[unit_attacked_index].stats.hp -= 1
-    if (updated_enemy_units[unit_attacked_index].stats.hp <= 0) {
-      updated_enemy_units[unit_attacked_index].getDead()
-      unit_attacked_index += 1
+  while(attack_damage > 0 && updated_enemy_units.length > 0 ) {
+    updated_enemy_units[0].stats.hp -= 1
+    if (updated_enemy_units[0].stats.hp <= 0) {
+      updated_enemy_units[0].getDead()
     }
+    updated_enemy_units = updated_enemy_units_mid_combat(end_cell_id, enemy_unit_key);
     attack_damage -= 1
   }
+}
+
+function updated_enemy_units_mid_combat(end_cell_id, enemy_unit_key) {
+  return GAME_STATE.board[end_cell_id.split('_')[0]][end_cell_id.split('_')[1]][enemy_unit_key]
+                          .filter((unit) => !unit.isDead)
+                          .sort((b, a) => {
+                            if (a.stats.hp !== b.stats.hp) {
+                              return a.stats.hp - b.stats.hp;
+                            }
+
+                            return b.stats.cost - a.stats.cost;
+                          }); // descending order of hp, tiebreaker is cost ascending
 }
 
 function cleanupDeadUnits() {

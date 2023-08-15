@@ -4,7 +4,6 @@ Server / Client Interface:
 todo: write
 
 BUGS:
-- a moves to b , b moves to c moves all of them. Unit moves need to be handled one at a time
 
 
 FIGURE OUT:
@@ -17,7 +16,9 @@ TODO:
 Combine unit and structure configs between frontend and backend without using some webpack shit
 
 
+
 make board bigger and adjust starting stuff?
 
 
-event history
+
+socket issue if second player reconnects first

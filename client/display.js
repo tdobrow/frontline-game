@@ -23,6 +23,8 @@ class Display {
     while (document.getElementById('board').childNodes.length > 0) {
       document.getElementById('board').childNodes[0].remove()
     }
+
+    let my_territory = 0;
     for (var row = 0; row < this.board.length; row++) {
       for (var col = 0; col < this.board[row].length; col++) {
         var cell = document.createElement("div")
@@ -32,6 +34,7 @@ class Display {
         if (this.board[row][col].ownership > 0) {
           if ((this.is_player_1 && this.board[row][col].ownership == 1) || (!this.is_player_1 && this.board[row][col].ownership == 2)) {
             cell.classList.add('friendly_controlled');
+            my_territory += 1;
           }
           if ((this.is_player_1 && this.board[row][col].ownership == 2) || (!this.is_player_1 && this.board[row][col].ownership == 1)) {
             cell.classList.add('enemy_controlled');
@@ -62,6 +65,9 @@ class Display {
         container.appendChild(cell)
       }
     }
+
+    document.getElementById('current_area').innerText = `Territory: ${my_territory}`;
+
     this.layerUnitsAndStructures()
     this.layerFog()
   }
@@ -318,9 +324,11 @@ class Display {
   is2Adjacent(i, j, units_key) {
     // Positions within 2 squares in each direction, including diagonals
     const offsets = [
-        [-2, 0], [-1, -1], [0, -2], [1, -1], [2, 0],
-        [1, 1], [0, 2], [-1, 1], [-2, -1], [-2, 1],
-        [-1, -2], [1, -2], [2, -1], [2, 1], [-1, 2], [1, 2]
+      [-2, 0],
+      [-1, -1], [-1, 0], [-1, 1],
+      [0, -2], [0, -1], [0, 1], [0, 2],
+      [1, -1], [1, 0], [1, 1],
+      [2, 0],
     ];
 
     for (const [xOffset, yOffset] of offsets) {

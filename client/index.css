@@ -92,6 +92,7 @@ h3 {
   gap: 1px;
   width: 730px;
   height: 730px;
+  flex-shrink: 0
 }
 
 .tile {
@@ -123,7 +124,7 @@ h3 {
 }
 /* The order of these three matters such that friendly/enemy override fog */
 .fog {
-  background-color: #c0c0c0;
+  background-color: #686868;
   /* opacity: 0.75; */
 }
 
@@ -173,6 +174,8 @@ h3 {
 }
 .flex-container {
   display: flex;
+  overflow-x: auto;
+  position: relative;
 }
 
 .shop {
@@ -183,6 +186,7 @@ h3 {
   background-color: #ababab;
   height: 330px;
   margin-top: 0px;
+  flex-shrink: 0
 }
 
 .unit-list {
@@ -225,12 +229,11 @@ th {
 
 #arrow-svg {
   position: absolute;
-  top: 110px;
-  left: 10px;
   width: 730px;
   height: 730px;
   z-index: 10; /* Make sure the SVG is above the grid */
   pointer-events: none; /* Make sure the SVG doesn't block mouse events */
+  flex-shrink: 0
 }
 
 .chatbox {
@@ -241,6 +244,7 @@ th {
   flex-direction: column;
   margin: 20px;
   margin-top: 0px;
+  flex-shrink: 0
 }
 
 .chat-messages {

@@ -45,10 +45,6 @@ class ActionHandler {
         (this.is_player_1 && board_cell.ownership == 1 && board_cell.p1_structures.length == 0) ||
         (!this.is_player_1 && board_cell.ownership == 2 && board_cell.p2_structures.length == 0)
       ) {
-        this.my_moves.placements.push({
-          start_cell_id: cell.id,
-          type: document.querySelector('.shop_selected').id
-        })
         this.my_money -= Structure.statsMapping[document.querySelector('.shop_selected').id].cost;
         this.placePiece(cell);
 
@@ -82,7 +78,6 @@ class ActionHandler {
   }
 
   // PRIVATE
-
 
   placePiece(cell) {
     this.my_moves.placements.push({
@@ -219,7 +214,7 @@ class ActionHandler {
         var childElement2 = document.getElementById(`arrow-line-${cell.id}`);
         parentElement.removeChild(childElement1);
         parentElement.removeChild(childElement2);
-        this.my_moves.attack.splice(i, 1);
+        this.my_moves.attacks.splice(i, 1);
       }
     }
     return svg_clear;

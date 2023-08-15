@@ -62,10 +62,11 @@ window.onload = () => {
     ingestServerResponse(server_response);
   });
 
-  socket.on('output_message', (message) => {
+  socket.on('output_message', (data) => {
     const chatMessagesDiv = document.getElementById('chat-messages');
     const messageElement = document.createElement('div');
-    messageElement.textContent = message;
+    const you = (data.player_1 && IS_PLAYER_1) || (!data.player_1 && !IS_PLAYER_1);
+    messageElement.textContent = you ? `you: ${data.message}` : `opponent: ${data.message}`;
     chatMessagesDiv.appendChild(messageElement);
   });
 
@@ -89,6 +90,8 @@ document.getElementById("submit_btn").onclick = () => {
     placements: MY_MOVE.placements,
   }
 
+  console.log("Submitting move to server")
+  console.log(move_for_server)
   socket.emit('submit_move', move_for_server);
   document.getElementById("submit_btn").disabled = true;
   MY_MOVE = {
