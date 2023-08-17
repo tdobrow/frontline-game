@@ -78,6 +78,23 @@ window.onload = () => {
   	ingestServerResponse(server_response)
   });
 
+  socket.on('game_end', (server_response) => {
+    document.title = "Game Ended"
+    document.getElementById("submit_btn").style.backgroundColor = '#96bbe1db';
+    document.getElementById("submit_btn").style.color = 'grey';
+
+    display = new Display(
+      server_response.game_state.board,
+      IS_PLAYER_1,
+      MY_MOVE,
+      MY_RESOURCES
+    );
+
+    display.displayBoard();
+    Display.clearFog();
+    display.layerUnitsAndStructures();
+  });
+
   Display.setupShop()
 };
 
@@ -107,13 +124,18 @@ document.getElementById("submit_btn").onclick = () => {
 
 // handle submit button click
 document.getElementById("reset_btn").onclick = () => {
-  socket.emit('reset', IS_PLAYER_1)
-
   MY_MOVE = {
     'movements': [],
     'attacks': [],
     'placements': [],
   }
+
+  socket.emit('reset', IS_PLAYER_1)
+}
+
+  // handle submit button click
+document.getElementById("resign_btn").onclick = () => {
+  socket.emit('resign');
 }
 
 const input = document.getElementById('message-input');

@@ -67,6 +67,7 @@ io.on('connection', function(socket) {
       processUnitMovements()
       processPurchases()
       processMelee()
+      setOwnership()
 
       emitMovesToPlayers()
       SUBMITTED_MOVES = {}
@@ -90,6 +91,12 @@ io.on('connection', function(socket) {
     }
 
     socket.emit('server_response', {
+      'game_state': GAME_STATE
+    })
+  })
+
+  socket.on('resign', function() {
+    io.sockets.emit('game_end', {
       'game_state': GAME_STATE
     })
   })
@@ -155,8 +162,6 @@ function processUnitMovements() {
   })) {
     moveUnits(move.start_cell_id, move.end_cell_id, 'p2_units')
   }
-
-  setOwnership()
 }
 
 function processUnitAttacks() {
@@ -183,8 +188,6 @@ function processMelee() {
       }
     }
   }
-
-  setOwnership()
 }
 
 function setOwnership() {
@@ -267,7 +270,6 @@ function processPurchases() {
       placeUnit(move, 2)
     }
   }
-  setOwnership();
 }
 
 function placeUnit(move, player_number) {
@@ -300,8 +302,8 @@ function placeStructure(move, player_number) {
 
 function moveUnits(start_cell_id, end_cell_id, player_unit_key) {
   const moved_units = []
-  for (let row=0; row<10; row++) {
-    for (let col=0; col<10; col++) {
+  for (let row=0; row<11; row++) {
+    for (let col=0; col<11; col++) {
       GAME_STATE.board[row][col][player_unit_key].forEach(function(unit) {
         if (unit.row == start_cell_id.split('_')[0] && unit.col == start_cell_id.split('_')[1]) {
           unit.row = +end_cell_id.split('_')[0]
@@ -359,8 +361,8 @@ function updated_enemy_units_mid_combat(end_cell_id, enemy_unit_key) {
 }
 
 function cleanupDeadUnits() {
-  for (let row=0; row<10; row++) {
-    for (let col=0; col<10; col++) {
+  for (let row=0; row<11; row++) {
+    for (let col=0; col<11; col++) {
       GAME_STATE.board[row][col].p1_units = GAME_STATE.board[row][col].p1_units.filter((unit) => !unit.isDead)
       GAME_STATE.board[row][col].p2_units = GAME_STATE.board[row][col].p2_units.filter((unit) => !unit.isDead)
       GAME_STATE.board[row][col].p1_structures = GAME_STATE.board[row][col].p1_structures.filter((unit) => !unit.isDead)

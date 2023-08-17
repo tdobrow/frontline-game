@@ -136,10 +136,10 @@ class Display {
     dot.setAttribute('id', `dot-${ay}_${ax}`);
 
     // values are percentages
-    const cellXCenterX = (ax * 10 + 5);
-    const cellXCenterY = (ay * 10 + 5);
-    const cellYCenterX = (bx * 10 + 5);
-    const cellYCenterY = (by * 10 + 5);
+    const cellXCenterX = (ax * 9 + 5);
+    const cellXCenterY = (ay * 9 + 5);
+    const cellYCenterX = (bx * 9 + 5);
+    const cellYCenterY = (by * 9 + 5);
 
     arrowLine.setAttribute('x1', cellXCenterX);
     arrowLine.setAttribute('y1', cellXCenterY);
@@ -182,6 +182,14 @@ class Display {
     }
   }
 
+  static clearFog() {
+    for (let x=0; x < 11; x++) {
+      for (let y=0; y < 11; y++) {
+        document.getElementById(x + "_" + y)?.classList?.remove("fog");
+      }
+    }
+  }
+
   // PRIVATE
 
   layerFog() {
@@ -200,8 +208,8 @@ class Display {
       }
     }
     if (this.is_player_1) {
-      for (let x=0; x < 10; x++) {
-        for (let y=0; y < 10; y++) {
+      for (let x=0; x < 11; x++) {
+        for (let y=0; y < 11; y++) {
           for (const unit of this.board[x][y].p1_units) {
             for (let i = -1; i <= 1; i++) {
               for (let j = -1; j <= 1; j++) {
@@ -214,8 +222,8 @@ class Display {
         }
       }
     } else {
-      for (let x=0; x < 10; x++) {
-        for (let y=0; y < 10; y++) {
+      for (let x=0; x < 11; x++) {
+        for (let y=0; y < 11; y++) {
           for (const unit of this.board[x][y].p2_units) {
             for (let i = -1; i <= 1; i++) {
               for (let j = -1; j <= 1; j++) {
@@ -257,8 +265,8 @@ class Display {
     Display.hidePieceDisplayTable()
 
     document.getElementById("unit-list").style.display = "block"
-    const top = cell.id.split("_")[0] * 70 + 80;
-    const left = cell.id.split("_")[1] * 70 + 50;
+    const top = cell.id.split("_")[0] * 64;
+    const left = cell.id.split("_")[1] * 64 + 50;
 
     document.getElementById("unit-list").style.top = top + "px";
     document.getElementById("unit-list").style.left = left + "px";
@@ -341,7 +349,7 @@ class Display {
     }
 
     return false;
-}
+  }
 }
 
 export default Display;

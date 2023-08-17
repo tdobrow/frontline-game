@@ -24,4 +24,8 @@ currently can only click on grid to remove popup
 
 socket issue if second player reconnects first
 
-handle building FOW and ownership
+----
+
+
+
+place a mine?
