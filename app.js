@@ -36,13 +36,17 @@ io.on('connection', function(socket) {
     socket.emit('starting_info', {
       'game_state': GAME_STATE,
       'socket_id': socket.id,
-      'is_player_1': true
+      'is_player_1': true,
+      'unit_map': Unit.statsMapping,
+      'structure_map': Structure.statsMapping
     })
   } else {
     socket.emit('starting_info', {
       'game_state': GAME_STATE,
       'socket_id': socket.id,
-      'is_player_1': false
+      'is_player_1': false,
+      'unit_map': Unit.statsMapping,
+      'structure_map': Structure.statsMapping
     })
   }
 
@@ -91,7 +95,9 @@ io.on('connection', function(socket) {
     }
 
     socket.emit('server_response', {
-      'game_state': GAME_STATE
+      'game_state': GAME_STATE,
+      'unit_map': Unit.statsMapping,
+      'structure_map': Structure.statsMapping
     })
   })
 
@@ -141,7 +147,9 @@ function handleDisconnect(socket_id) {
 
 function emitMovesToPlayers() {
   io.sockets.emit('server_response', {
-    'game_state': GAME_STATE
+    'game_state': GAME_STATE,
+    'unit_map': Unit.statsMapping,
+    'structure_map': Structure.statsMapping,
   })
 }
 
@@ -222,16 +230,16 @@ function isAdjacent(i, j, units_key) {
   if (i > 0 && j > 0 && GAME_STATE.board[i-1][j-1][units_key].length > 0) {
     return true
   }
-  if (i > 0 && j < 9 && GAME_STATE.board[i-1][j+1][units_key].length > 0) {
+  if (i > 0 && j < 10 && GAME_STATE.board[i-1][j+1][units_key].length > 0) {
     return true
   }
-  if (i < 9 && j > 0 && GAME_STATE.board[i+1][j-1][units_key].length > 0) {
+  if (i < 10 && j > 0 && GAME_STATE.board[i+1][j-1][units_key].length > 0) {
     return true
   }
-  if (i < 9 && GAME_STATE.board[i+1][j][units_key].length > 0) {
+  if (i < 10 && GAME_STATE.board[i+1][j][units_key].length > 0) {
     return true
   }
-  if (i < 9 && j < 9 && GAME_STATE.board[i+1][j+1][units_key].length > 0) {
+  if (i < 10 && j < 10 && GAME_STATE.board[i+1][j+1][units_key].length > 0) {
     return true
   }
   if (j > 0 && GAME_STATE.board[i][j-1][units_key].length > 0) {
@@ -276,7 +284,7 @@ function placeUnit(move, player_number) {
   const row = +move.start_cell_id.split('_')[0]
   const col = +move.start_cell_id.split('_')[1]
 
-  const unit = new Unit(move.type, player_number, row, col)
+  const unit = new Unit(move.type, player_number)
   if (player_number == 1) {
     GAME_STATE.board[row][col].p1_units.push(unit)
     GAME_STATE.p1_resources -= unit.stats.cost
@@ -290,7 +298,7 @@ function placeStructure(move, player_number) {
   const row = move.start_cell_id.split('_')[0]
   const col = move.start_cell_id.split('_')[1]
 
-  const structure = new Structure(move.type, player_number, row, col)
+  const structure = new Structure(move.type, player_number)
   if (player_number == 1) {
     GAME_STATE.board[row][col].p1_structures.push(structure)
     GAME_STATE.p1_resources -= structure.stats.cost
@@ -305,10 +313,7 @@ function moveUnits(start_cell_id, end_cell_id, player_unit_key) {
   for (let row=0; row<11; row++) {
     for (let col=0; col<11; col++) {
       GAME_STATE.board[row][col][player_unit_key].forEach(function(unit) {
-        if (unit.row == start_cell_id.split('_')[0] && unit.col == start_cell_id.split('_')[1]) {
-          unit.row = +end_cell_id.split('_')[0]
-          unit.col = +end_cell_id.split('_')[1]
-
+        if (row == start_cell_id.split('_')[0] && col == start_cell_id.split('_')[1]) {
           moved_units.push(unit);
         }
       })

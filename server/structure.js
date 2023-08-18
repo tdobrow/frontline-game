@@ -9,7 +9,7 @@ class Structure {
     this.isDead = true;
   }
 
-  constructor(type, player, row, col) {
+  constructor(type, player) {
     if (!Structure.statsMapping[type]) {
       throw new Error(`Invalid structure type: ${type}`);
     }
@@ -18,10 +18,7 @@ class Structure {
 
     this.type = type;
     this.player = player;
-    this.row = row;
-    this.col = col;
 
-    this.name = `P${player}-${type}`;
     this.stats = JSON.parse(JSON.stringify(Structure.statsMapping[type]));
   }
 }

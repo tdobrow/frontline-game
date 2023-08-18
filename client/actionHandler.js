@@ -1,9 +1,7 @@
-import Unit from './unit.js'
-import Structure from './structure.js'
 import Display from './display.js'
 
 class ActionHandler {
-  constructor(board, is_player_1, my_moves, my_money) {
+  constructor(unit_map, structure_map, board, is_player_1, my_moves, my_money) {
     this.board = board;
     this.is_player_1 = is_player_1;
     this.my_money = my_money;
@@ -12,6 +10,9 @@ class ActionHandler {
 
     this.selected_start_cell = undefined;
     this.selected_end_cell = undefined;
+
+    this.unit_map = unit_map;
+    this.structure_map = structure_map;
   }
 
   // PUBLIC
@@ -27,10 +28,10 @@ class ActionHandler {
         (this.is_player_1 && (board_cell.p1_structures.length > 0 && board_cell.p1_structures[0].type == 'Barracks')) ||
         (!this.is_player_1 && (board_cell.p2_structures.length > 0 && board_cell.p2_structures[0].type == 'Barracks'))
       ) {
-        this.my_money -= Unit.statsMapping[document.querySelector('.shop_selected').id].cost;
+        this.my_money -= this.unit_map[document.querySelector('.shop_selected').id].cost;
         this.placePiece(cell);
 
-        Display.greyOutUnaffordableItems(this.my_money);
+        Display.greyOutUnaffordableItems(this.unit_map. this.structure_map, this.my_money);
 
         return;
       } else {
@@ -47,10 +48,10 @@ class ActionHandler {
         (this.is_player_1 && board_cell.ownership == 1 && board_cell.p1_structures.length == 0) ||
         (!this.is_player_1 && board_cell.ownership == 2 && board_cell.p2_structures.length == 0)
       ) {
-        this.my_money -= Structure.statsMapping[document.querySelector('.shop_selected').id].cost;
+        this.my_money -= this.structure_map[document.querySelector('.shop_selected').id].cost;
         this.placePiece(cell);
 
-        Display.greyOutUnaffordableItems(this.my_money)
+        Display.greyOutUnaffordableItems(this.unit_map. this.structure_map, this.my_money)
 
         return;
       } else {

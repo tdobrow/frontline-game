@@ -1,20 +1,62 @@
-import Unit from './unit.js'
-import Structure from './structure.js'
 import ActionHandler from './actionHandler.js';
 
 class Display {
-  constructor(board, is_player_1, my_moves, my_money) {
+  constructor(unit_map, structure_map, board, is_player_1, my_moves, my_money) {
     this.board = board;
     this.is_player_1 = is_player_1;
     this.my_money = my_money;
 
-    Display.greyOutUnaffordableItems(this.my_money);
+    this.unit_map = unit_map;
+    this.structure_map = structure_map;
+
+    Display.greyOutUnaffordableItems(unit_map, structure_map, this.my_money);
     this.clearSvgLayer();
 
-    this.action_handler = new ActionHandler(board, is_player_1, my_moves, my_money);
+    this.action_handler = new ActionHandler(unit_map, structure_map, board, is_player_1, my_moves, my_money);
   }
 
   // PUBLIC
+
+  buildShop() {
+    Object.entries(this.unit_map).forEach(([unit_name, unit_stats]) => {
+      const element = document.getElementById(unit_name);
+
+      const name = document.createElement("td");
+      name.textContent = unit_name;
+      const cost = document.createElement("td");
+      cost.textContent = unit_stats.cost;
+      const hp = document.createElement("td");
+      hp.textContent = unit_stats.hp;
+      const speed = document.createElement("td");
+      speed.textContent = unit_stats.speed;
+      const range = document.createElement("td");
+      range.textContent = unit_stats.range;
+      const damage = document.createElement("td");
+      damage.textContent = unit_stats.damage;
+
+      element.appendChild(name);
+      element.appendChild(cost);
+      element.appendChild(hp);
+      element.appendChild(speed);
+      element.appendChild(range);
+      element.appendChild(damage);
+    });
+
+    Object.entries(this.structure_map).forEach(([structure_name, structure_stats]) => {
+      const element = document.getElementById(structure_name);
+
+      const name = document.createElement("td");
+      name.textContent = structure_name;
+      const cost = document.createElement("td");
+      cost.textContent = structure_stats.cost;
+      const hp = document.createElement("td");
+      hp.textContent = structure_stats.hp;
+
+      element.appendChild(name);
+      element.appendChild(cost);
+      element.appendChild(hp);
+    });
+  }
 
   displayBoard() {
     Display.hidePieceDisplayTable()
@@ -49,7 +91,9 @@ class Display {
             const col = cell.id.split("_")[1];
             const board_cell = this.board[row][col]
             if (board_cell.p1_units.length > 0 || board_cell.p2_units.length > 0 || board_cell.p1_structures.length > 0 || board_cell.p2_structures.length > 0) {
-              this.buildPieceDisplayTable(cell, this.board[row][col]);
+              if (!document.getElementById(`${row}_${col}`).classList.contains('fog')) {
+                this.buildPieceDisplayTable(cell, this.board[row][col]);
+              }
             }
           };
         }
@@ -163,18 +207,18 @@ class Display {
     document.getElementById('arrow-svg').appendChild(dot);
   }
 
-  static greyOutUnaffordableItems(my_money) {
+  static greyOutUnaffordableItems(unit_map, structure_map, my_money) {
     document.querySelectorAll('.unit-row').forEach(row => row.classList.remove('greyed-out'));
     document.querySelectorAll('.structure-row').forEach(row => row.classList.remove('greyed-out'));
 
-    const tooExpensiveUnits = Object.entries(Unit.statsMapping)
+    const tooExpensiveUnits = Object.entries(unit_map)
       .filter(([_, value]) => value.cost > my_money)
       .map(([key, _]) => key);
     for (const unit of tooExpensiveUnits) {
       document.getElementById(unit).classList.add('greyed-out');
     }
 
-    const tooExpensiveStructures = Object.entries(Structure.statsMapping)
+    const tooExpensiveStructures = Object.entries(structure_map)
       .filter(([_, value]) => value.cost > my_money)
       .map(([key, _]) => key);
     for (const structure of tooExpensiveStructures) {
@@ -210,11 +254,11 @@ class Display {
     if (this.is_player_1) {
       for (let x=0; x < 11; x++) {
         for (let y=0; y < 11; y++) {
-          for (const unit of this.board[x][y].p1_units) {
+          for (const _unit of this.board[x][y].p1_units) {
             for (let i = -1; i <= 1; i++) {
               for (let j = -1; j <= 1; j++) {
-                const row = unit.row + i;
-                const col = unit.col + j;
+                const row = x + i;
+                const col = x + j;
                 document.getElementById(row + "_" + col)?.classList?.remove("fog");
               }
             }
@@ -224,11 +268,11 @@ class Display {
     } else {
       for (let x=0; x < 11; x++) {
         for (let y=0; y < 11; y++) {
-          for (const unit of this.board[x][y].p2_units) {
+          for (const _unit of this.board[x][y].p2_units) {
             for (let i = -1; i <= 1; i++) {
               for (let j = -1; j <= 1; j++) {
-                const row = unit.row + i;
-                const col = unit.col + j;
+                const row = x + i;
+                const col = y + j;
                 document.getElementById(row + "_" + col)?.classList?.remove("fog");
               }
             }
@@ -308,22 +352,22 @@ class Display {
     if (i > 0 && j > 0 && this.board[i-1][j-1][units_key].length > 0) {
       return true
     }
-    if (i > 0 && j < 9 && this.board[i-1][j+1][units_key].length > 0) {
+    if (i > 0 && j < 10 && this.board[i-1][j+1][units_key].length > 0) {
       return true
     }
-    if (i < 9 && j > 0 && this.board[i+1][j-1][units_key].length > 0) {
+    if (i < 10 && j > 0 && this.board[i+1][j-1][units_key].length > 0) {
       return true
     }
-    if (i < 9 && this.board[i+1][j][units_key].length > 0) {
+    if (i < 10 && this.board[i+1][j][units_key].length > 0) {
       return true
     }
-    if (i < 9 && j < 9 && this.board[i+1][j+1][units_key].length > 0) {
+    if (i < 10 && j < 10 && this.board[i+1][j+1][units_key].length > 0) {
       return true
     }
     if (j > 0 && this.board[i][j-1][units_key].length > 0) {
       return true
     }
-    if (j < 9 && this.board[i][j+1][units_key].length > 0) {
+    if (j < 10 && this.board[i][j+1][units_key].length > 0) {
       return true
     }
     return false
@@ -343,7 +387,7 @@ class Display {
         const newX = i + xOffset;
         const newY = j + yOffset;
 
-        if (newX >= 0 && newX <= 9 && newY >= 0 && newY <= 9 && this.board[newX][newY][units_key].length > 0) {
+        if (newX >= 0 && newX <= 10 && newY >= 0 && newY <= 10 && this.board[newX][newY][units_key].length > 0) {
             return true;
         }
     }

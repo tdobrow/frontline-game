@@ -21,6 +21,7 @@ var MY_MOVE = {
 // }
 
 var IS_PLAYER_1 = false
+var SHOP_BUILT = false
 var MY_RESOURCES = 0
 
 var display = undefined;
@@ -42,11 +43,18 @@ function ingestServerResponse(server_response) {
   document.getElementById("my_money").innerHTML = "Money: $" + MY_RESOURCES
 
   display = new Display(
+    server_response.unit_map,
+    server_response.structure_map,
     server_response.game_state.board,
     IS_PLAYER_1,
     MY_MOVE,
     MY_RESOURCES
   );
+
+  if (!SHOP_BUILT) {
+    display.buildShop();
+    SHOP_BUILT = true;
+  }
 
   display.displayBoard()
 }
@@ -84,6 +92,8 @@ window.onload = () => {
     document.getElementById("submit_btn").style.color = 'grey';
 
     display = new Display(
+      server_response.unit_map,
+      server_response.structure_map,
       server_response.game_state.board,
       IS_PLAYER_1,
       MY_MOVE,
@@ -137,6 +147,11 @@ document.getElementById("reset_btn").onclick = () => {
 document.getElementById("resign_btn").onclick = () => {
   socket.emit('resign');
 }
+
+// click anyone on the page to close piece popup
+document.addEventListener('click', function(_event) {
+  Display.hidePieceDisplayTable();
+});
 
 const input = document.getElementById('message-input');
 input.addEventListener('keydown', function(event) {

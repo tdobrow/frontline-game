@@ -13,13 +13,8 @@ ssh-add ~/.ssh/id_rsa_personal
 
 TODO:
 --
-Combine unit and structure configs between frontend and backend without using some webpack shit
 
 
-
-make board bigger and adjust starting stuff?
-
-currently can only click on grid to remove popup
 
 
 socket issue if second player reconnects first
@@ -29,3 +24,12 @@ socket issue if second player reconnects first
 
 
 place a mine?
+medic
+tanky guy
+glass cannon
+wall
+watch tower for vision/territory/shooting
+burrower?
+dive bombers (have to melee)
+missile with splash damage
+someont that pimps out your stack
