@@ -97,13 +97,15 @@ io.on('connection', function(socket) {
     socket.emit('server_response', {
       'game_state': GAME_STATE,
       'unit_map': Unit.statsMapping,
-      'structure_map': Structure.statsMapping
+      'structure_map': Structure.statsMapping,
     })
   })
 
   socket.on('resign', function() {
     io.sockets.emit('game_end', {
-      'game_state': GAME_STATE
+      'game_state': GAME_STATE,
+      'unit_map': Unit.statsMapping,
+      'structure_map': Structure.statsMapping
     })
   })
 

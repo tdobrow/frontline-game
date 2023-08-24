@@ -31,7 +31,7 @@ class ActionHandler {
         this.my_money -= this.unit_map[document.querySelector('.shop_selected').id].cost;
         this.placePiece(cell);
 
-        Display.greyOutUnaffordableItems(this.unit_map. this.structure_map, this.my_money);
+        Display.greyOutUnaffordableItems(this.unit_map, this.structure_map, this.my_money);
 
         return;
       } else {

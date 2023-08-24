@@ -19,6 +19,10 @@ TODO:
 
 socket issue if second player reconnects first
 
+
+add base money?
+
+
 ----
 
 
