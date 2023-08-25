@@ -70,7 +70,11 @@ io.on('connection', function(socket) {
       processUnitAttacks()
       processUnitMovements()
       processPurchases()
-      processMelee()
+      processMelees()
+
+      // Medic healing, etc.
+      processPostMeleeActions()
+
       setOwnership()
 
       emitMovesToPlayers()
@@ -184,7 +188,7 @@ function processUnitAttacks() {
   cleanupDeadUnits()
 }
 
-function processMelee() {
+function processMelees() {
   for (var i=0; i<GAME_STATE.board.length; i++) {
     for( var j=0; j<GAME_STATE.board.length; j++) {
       while (
@@ -199,6 +203,32 @@ function processMelee() {
     }
   }
 }
+
+function processPostMeleeActions() {
+  for (var i=0; i<GAME_STATE.board.length; i++) {
+    for(var j=0; j<GAME_STATE.board.length; j++) {
+      processMedicHeals(i, j)
+    }
+  }
+}
+
+function processMedicHeals(i, j) {
+  if (GAME_STATE.board[i][j].p1_units.length > 0 && GAME_STATE.board[i][j].p1_units.map((unit) => unit.type).includes('Medic')) {
+    for (let unit of GAME_STATE.board[i][j].p1_units) {
+      if (unit.stats.hp < Unit.statsMapping[unit.type].hp) {
+        unit.stats.hp += 1
+      }
+    }
+  }
+  if (GAME_STATE.board[i][j].p2_units.length > 0 && GAME_STATE.board[i][j].p2_units.map((unit) => unit.type).includes('Medic')) {
+    for (let unit of GAME_STATE.board[i][j].p2_units) {
+      if (unit.stats.hp < Unit.statsMapping[unit.type].hp) {
+        unit.stats.hp += 1
+      }
+    }
+  }
+}
+
 
 function setOwnership() {
   // Start with what previously is
