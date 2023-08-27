@@ -15,6 +15,7 @@ const Structure = require('./structure');
             'p1_structures': [],
             'p2_structures': [],
             'ownership': 1, // 0 = neutral, 1 = player 1, 2 = player 2
+            'terrain': 'default'
           })
         } else if (col + row > 15 && row > 6 && col > 6) {
           new_row.push({
@@ -23,6 +24,16 @@ const Structure = require('./structure');
             'p1_structures': [],
             'p2_structures': [],
             'ownership': 2, // 0 = neutral, 1 = player 1, 2 = player 2
+            'terrain': 'default'
+          })
+        } else if (col >= 6 && col <= 7 && row >= 3 && row <= 4) {
+          new_row.push({
+            'p1_units': [],
+            'p2_units': [],
+            'p1_structures': [],
+            'p2_structures': [],
+            'ownership': 0, // 0 = neutral, 1 = player 1, 2 = player 2
+            'terrain': 'water'
           })
         } else {
           new_row.push({
@@ -31,6 +42,7 @@ const Structure = require('./structure');
             'p1_structures': [],
             'p2_structures': [],
             'ownership': 0, // 0 = neutral, 1 = player 1, 2 = player 2
+            'terrain': 'default'
           })
         }
       }

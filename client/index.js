@@ -30,6 +30,9 @@ function ingestServerResponse(server_response) {
   console.log("Server Response");
   console.log(server_response)
 
+  document.getElementById("dead-p1-units").innerHTML = `Dead P1 Units: ${server_response.dead_units?.filter(unit => unit.player === 1)?.map(unit => unit.type) || ''}`;
+  document.getElementById("dead-p2-units").innerHTML = `Dead P2 Units: ${server_response.dead_units?.filter(unit => unit.player === 2)?.map(unit => unit.type) || ''}`;
+
   document.title = "Your Turn"
   document.getElementById("submit_btn").style.backgroundColor = '#4681f4';
   document.getElementById("submit_btn").style.color = 'white';
@@ -46,6 +49,7 @@ function ingestServerResponse(server_response) {
     server_response.unit_map,
     server_response.structure_map,
     server_response.game_state.board,
+    server_response.dead_units,
     IS_PLAYER_1,
     MY_MOVE,
     MY_RESOURCES
@@ -95,6 +99,7 @@ window.onload = () => {
       server_response.unit_map,
       server_response.structure_map,
       server_response.game_state.board,
+      server_response.dead_units,
       IS_PLAYER_1,
       MY_MOVE,
       MY_RESOURCES

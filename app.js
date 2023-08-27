@@ -16,6 +16,8 @@ const Unit = require('./server/unit');
 const Structure = require('./server/structure');
 
 var PLAYER_IDS = []
+var DEAD_UNITS = []
+
 var SUBMITTED_MOVES = {}
 
 const starting_state = startingStateGeneration.generateBoard()
@@ -38,7 +40,8 @@ io.on('connection', function(socket) {
       'socket_id': socket.id,
       'is_player_1': true,
       'unit_map': Unit.statsMapping,
-      'structure_map': Structure.statsMapping
+      'structure_map': Structure.statsMapping,
+      'dead_units': DEAD_UNITS
     })
   } else {
     socket.emit('starting_info', {
@@ -46,7 +49,8 @@ io.on('connection', function(socket) {
       'socket_id': socket.id,
       'is_player_1': false,
       'unit_map': Unit.statsMapping,
-      'structure_map': Structure.statsMapping
+      'structure_map': Structure.statsMapping,
+      'dead_units': DEAD_UNITS
     })
   }
 
@@ -67,10 +71,10 @@ io.on('connection', function(socket) {
     if (SUBMITTED_MOVES['p1'] && SUBMITTED_MOVES['p2']) {
       computeIncome()
 
-      processUnitAttacks()
+      DEAD_UNITS.push(...processUnitAttacks())
       processUnitMovements()
       processPurchases()
-      processMelees()
+      DEAD_UNITS.push(...processMelees())
 
       // Medic healing, etc.
       processPostMeleeActions()
@@ -79,6 +83,7 @@ io.on('connection', function(socket) {
 
       emitMovesToPlayers()
       SUBMITTED_MOVES = {}
+      DEAD_UNITS = []
     }
   })
 
@@ -109,7 +114,8 @@ io.on('connection', function(socket) {
     io.sockets.emit('game_end', {
       'game_state': GAME_STATE,
       'unit_map': Unit.statsMapping,
-      'structure_map': Structure.statsMapping
+      'structure_map': Structure.statsMapping,
+      'dead_units': DEAD_UNITS
     })
   })
 
@@ -156,6 +162,7 @@ function emitMovesToPlayers() {
     'game_state': GAME_STATE,
     'unit_map': Unit.statsMapping,
     'structure_map': Structure.statsMapping,
+    'dead_units': DEAD_UNITS,
   })
 }
 
@@ -185,10 +192,12 @@ function processUnitAttacks() {
   for (const attack of SUBMITTED_MOVES.p2.attacks) {
     attackUnits(attack.start_cell_id, attack.end_cell_id, 'p2_units')
   }
-  cleanupDeadUnits()
+  return cleanupDeadUnits()
 }
 
 function processMelees() {
+  const dead_units = []
+
   for (var i=0; i<GAME_STATE.board.length; i++) {
     for( var j=0; j<GAME_STATE.board.length; j++) {
       while (
@@ -198,10 +207,11 @@ function processMelees() {
         attackUnits(i + "_" + j, i + "_" + j, 'p1_units')
         attackUnits(i + "_" + j, i + "_" + j, 'p2_units')
 
-        cleanupDeadUnits()
+        dead_units.push(...cleanupDeadUnits())
       }
     }
   }
+  return dead_units
 }
 
 function processPostMeleeActions() {
@@ -398,12 +408,23 @@ function updated_enemy_units_mid_combat(end_cell_id, enemy_unit_key) {
 }
 
 function cleanupDeadUnits() {
+  const dead_units = []
   for (let row=0; row<11; row++) {
     for (let col=0; col<11; col++) {
+      if ([
+        ...GAME_STATE.board[row][col].p1_units,
+        ...GAME_STATE.board[row][col].p2_units,
+        ...GAME_STATE.board[row][col].p1_structures,
+        ...GAME_STATE.board[row][col].p2_structures
+      ].filter((unit) => unit.isDead).length > 0) {
+        dead_units.push(`${row}_${col}`)
+      }
+
       GAME_STATE.board[row][col].p1_units = GAME_STATE.board[row][col].p1_units.filter((unit) => !unit.isDead)
       GAME_STATE.board[row][col].p2_units = GAME_STATE.board[row][col].p2_units.filter((unit) => !unit.isDead)
       GAME_STATE.board[row][col].p1_structures = GAME_STATE.board[row][col].p1_structures.filter((unit) => !unit.isDead)
       GAME_STATE.board[row][col].p2_structures = GAME_STATE.board[row][col].p2_structures.filter((unit) => !unit.isDead)
     }
   }
+  return dead_units
 }

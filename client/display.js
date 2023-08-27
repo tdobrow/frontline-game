@@ -1,8 +1,9 @@
 import ActionHandler from './actionHandler.js';
 
 class Display {
-  constructor(unit_map, structure_map, board, is_player_1, my_moves, my_money) {
+  constructor(unit_map, structure_map, board, dead_units, is_player_1, my_moves, my_money) {
     this.board = board;
+    this.dead_units = dead_units;
     this.is_player_1 = is_player_1;
     this.my_money = my_money;
 
@@ -83,6 +84,10 @@ class Display {
           }
         }
 
+        if (this.board[row][col].terrain == 'water') {
+          cell.classList.add('water');
+        }
+
         // Right click handler
         function createContextMenuHandler(cell) {
           return function(event) {
@@ -114,6 +119,7 @@ class Display {
 
     this.layerUnitsAndStructures()
     this.layerFog()
+    this.layerBlood()
   }
 
   // STATIC
@@ -251,32 +257,15 @@ class Display {
         document.getElementById(row + "_" + col).style.backgroundImage = "";
       }
     }
-    if (this.is_player_1) {
-      for (let x=0; x < 11; x++) {
-        for (let y=0; y < 11; y++) {
-          for (const _unit of this.board[x][y].p1_units) {
-            for (let i = -1; i <= 1; i++) {
-              for (let j = -1; j <= 1; j++) {
-                const row = x + i;
-                const col = x + j;
-                document.getElementById(row + "_" + col)?.classList?.remove("fog");
-              }
-            }
-          }
-        }
-      }
-    } else {
-      for (let x=0; x < 11; x++) {
-        for (let y=0; y < 11; y++) {
-          for (const _unit of this.board[x][y].p2_units) {
-            for (let i = -1; i <= 1; i++) {
-              for (let j = -1; j <= 1; j++) {
-                const row = x + i;
-                const col = y + j;
-                document.getElementById(row + "_" + col)?.classList?.remove("fog");
-              }
-            }
-          }
+  }
+
+  layerBlood() {
+    for (var row = 0; row < this.board.length; row++) {
+      for (var col = 0; col < this.board[row].length; col++) {
+        if (this.dead_units.includes(`${row}_${col}`)) {
+          document.getElementById(`${row}_${col}`).innerText = 'X';
+        } else {
+          document.getElementById(`${row}_${col}`).innerText = '';
         }
       }
     }

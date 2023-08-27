@@ -19,8 +19,19 @@ TODO:
 
 socket issue if second player reconnects first
 
+terrain for board
+  - water
 
-add base money?
+add base money? move starting placement in one? and change barracks spots??
+
+add SHOWN for enemy buildings
+  - meh kinda a pain
+
+add killed unit log
+
+make my own PNGs
+  - texture for blank squares
+
 
 
 ----

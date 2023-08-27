@@ -118,6 +118,8 @@ h3 {
   background-color: #f3ffee;
   transition: background-color 0.3s;
   position: relative;
+  font-size: 50px;
+  text-align: center;
 
   background-repeat: no-repeat;
   background-position: center;
@@ -143,6 +145,10 @@ h3 {
 /* The order of these three matters such that friendly/enemy override fog */
 .fog {
   background-color: #686868;
+  /* opacity: 0.75; */
+}
+.water {
+  background-color: #4a79df;
   /* opacity: 0.75; */
 }
 
@@ -192,7 +198,7 @@ h3 {
   padding-top: 10px;
   padding-bottom: 20px;
   background-color: #ababab;
-  height: 330px;
+  height: 370px;
   margin-top: 0px;
   flex-shrink: 0
 }
@@ -272,6 +278,32 @@ th {
   padding: 5px;
 }
 
-.chat-messages > div:nth-child(even) {
+.chat-messages > div:nth-child(odd) {
   background-color: #f0f0f0;  /* Adjust to your preferred shade of grey */
+}
+
+.dead-p1-units {
+  position: absolute;
+  width: 180px;
+  top: 450px;
+  left: 750px;
+  font-size: 15;
+  border: 1px solid #ccc;
+
+  padding: 10px; /* Optional: Add some padding for spacing */
+  word-wrap: break-word; /* Enable word wrapping */
+  overflow: auto;
+}
+
+.dead-p2-units {
+  position: absolute;
+  width: 180px;
+  top: 450px;
+  left: 960px;
+  font-size: 15;
+  border: 1px solid #ccc;
+
+  padding: 10px; /* Optional: Add some padding for spacing */
+  word-wrap: break-word; /* Enable word wrapping */
+  overflow: auto;
 }

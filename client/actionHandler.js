@@ -170,6 +170,10 @@ class ActionHandler {
     const end_row = end_cell.id.split("_")[0]
     const end_col = end_cell.id.split("_")[1]
 
+    if (this.board[end_row][end_col].terrain == 'water') {
+      return false;
+    }
+
     const units = player_1 ? this.board[start_row][start_col].p1_units : this.board[start_row][start_col].p2_units
     const distance = Math.abs(start_row - end_row) + Math.abs(start_col - end_col)
 
